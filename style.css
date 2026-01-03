@@ -30,7 +30,7 @@ body {
     height: calc(100vh - 30vh);
     min-height: calc(100vh - 180px);
 
-    background-image: url("BattleBackground.png");
+    background-image: url("./BattleBackground.png");
     background-size: contain;
     background-position: left bottom;
     background-repeat: repeat-x;
