@@ -30,9 +30,9 @@ body {
     height: calc(100vh - 30vh);
     min-height: calc(100vh - 180px);
 
-    background-image: url("./BattleBackground.png");
-    background-size: auto 100%;
-    background-position: center bottom;
+    background-image: url("./BattleMaps/battleback11.png");
+    background-size: cover;
+    background-position: top;
     background-repeat: repeat-x;
     background-color: black;
 
@@ -78,6 +78,38 @@ body {
     margin-bottom: 8vh;
 }
 
+
+
+.game img{
+    width: 100%;
+    height: 100%;
+}
+
+.game{
+    width: 128px;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    animation: enemy-float 2.5s ease-in-out infinite;
+}
+
+
+
+/* Bottom UI bar */
+.ui {
+    height: 30vh;
+    min-height: 180px;
+    background: rgb(255, 255, 255);
+    display: flex;
+    gap: 0.7vw;
+    padding: 0.5vw;
+    overflow: visible;
+}
+
 /* Section wrapper */
 .ui-section {
     position: relative;
@@ -97,17 +129,6 @@ body {
     font-size: 10px;
     color: white;
     white-space: nowrap;
-}
-
-/* Bottom UI bar */
-.ui {
-    height: 30vh;
-    min-height: 180px;
-    background: rgb(255, 255, 255);
-    display: flex;
-    gap: 0.7vw;
-    padding: 0.5vw;
-    overflow: visible;
 }
 
 /* UI panels */
@@ -151,22 +172,30 @@ body {
     justify-content: center;
 
     cursor: pointer;
+    animation: enemy-float 2.5s ease-in-out infinite;
 }
 
 .enemy-icon img {
     width: 100%;
     height: 100%;
+    margin-left: 500%;
+    margin-top: 80%;
 }
+
+.Self img{
+    height: 200%;
+    width: 200%;
+    border-style: solid;
+    border-radius: 25px;
+    border: 2px solid black;
+}
+
 
 /* Floating animation */
 @keyframes enemy-float {
     0%   { transform: translateY(0); }
     50%  { transform: translateY(-4px); }
     100% { transform: translateY(0); }
-}
-
-.enemy-icon {
-    animation: enemy-float 2.5s ease-in-out infinite;
 }
 
 .enemy-icon:hover {
@@ -176,7 +205,17 @@ body {
 .enemy-icon::before {
     content: "▶";
     position: absolute;
-    left: -30%;
+    left: 200%;
+    top: 70%;
+    font-size: 12px;
+    opacity: 0;
+    color: black;
+}
+
+.Self::before {
+    content: "▶";
+    position: absolute;
+    left: 170%;
     font-size: 12px;
     opacity: 0;
     color: black;
@@ -208,3 +247,21 @@ body {
 .shake {
     animation: screen-shake 0.2s;
 }
+
+/*Icon position adjustments*/
+.LinkedIn {
+    margin-left: 50%;
+    margin-top: 10%;
+}
+
+.Self {
+    margin-left: 00%;
+    margin-bottom: 50%;
+    margin-top: 50%;
+}
+
+.GitHub {
+    margin-left: 50%;
+    margin-bottom: 10%;
+}
+
