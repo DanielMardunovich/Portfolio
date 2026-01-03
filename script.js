@@ -1,64 +1,35 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const attacks = document.querySelectorAll('.attack');
-  const enemyEl = document.getElementById('enemy');
-  const enemyHpEl = document.getElementById('enemy-hp');
-  const playerHpEl = document.getElementById('player-hp');
-  const modals = document.querySelectorAll('.modal');
+document.addEventListener("DOMContentLoaded", () => {
 
-  let enemyHP = 250;
-  let playerHP = 100;
+    const enemies = document.querySelectorAll(".enemy");
 
-  const damageMap = {
-    project1: 40,
-    project2: 90,
-    project3: -30 // heal
-  };
+    enemies.forEach(enemy => {
+        enemy.addEventListener("click", event => {
 
-  function openModal(id){
-    const m = document.getElementById(id);
-    if(m) m.classList.add('active');
-  }
+            // If it's a link, prevent instant navigation
+            event.preventDefault();
 
-  function closeModal(el){
-    el.classList.remove('active');
-  }
+            // Prevent double click
+            if (enemy.classList.contains("defeated")) return;
 
-  attacks.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const proj = btn.dataset.project;
-      const dmg = damageMap[proj] ?? 0;
+            enemy.classList.add("defeated");
 
-      // Play simple animation
-      enemyEl.classList.add('shake');
-      setTimeout(()=> enemyEl.classList.remove('shake'), 350);
+            // Optional: screen shake
+            const battlefield = document.querySelector(".battlefield");
+            battlefield?.classList.add("shake");
 
-      // Apply damage or heal
-      if(dmg >= 0){
-        enemyHP = Math.max(0, enemyHP - dmg);
-        enemyHpEl.textContent = enemyHP;
-      } else {
-        playerHP = Math.min(100, playerHP - dmg * -1 * -1); // heal logic: dmg is negative
-        playerHP = Math.min(100, playerHP + Math.abs(dmg));
-        playerHpEl.textContent = playerHP;
-      }
+            setTimeout(() => {
+                battlefield?.classList.remove("shake");
+            }, 200);
 
-      // After short delay open the project modal
-      setTimeout(()=> openModal(proj), 420);
+            // Open link AFTER animation
+            const url = enemy.getAttribute("href");
+            if (url) {
+                setTimeout(() => {
+                    window.open(url, "_blank");
+                    enemy.classList.remove("defeated");
+                }, 600);
+            }
+        });
     });
-  });
 
-  // close buttons and clicking outside
-  modals.forEach(m => {
-    m.addEventListener('click', (e) => {
-      if(e.target === m) closeModal(m);
-    });
-    const closeBtn = m.querySelector('.close');
-    if(closeBtn) closeBtn.addEventListener('click', ()=> closeModal(m));
-  });
-
-  // optional Inspect button
-  const run = document.getElementById('run');
-  if(run) run.addEventListener('click', ()=>{
-    openModal('project1');
-  });
 });

@@ -140,6 +140,8 @@ body {
     justify-content: space-between;
 }
 
+/* Enemy icon */
+
 .enemy-icon {
     width: 64px;
     height: 64px;
@@ -182,4 +184,27 @@ body {
 
 .enemy-icon:hover::before {
     opacity: 1;
+}
+
+@keyframes enemy-defeat {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    20% {
+        filter: brightness(2);
+    }
+    100% {
+        opacity: 0.5;
+        filter: brightness(1);
+    }
+}
+
+.enemy.defeated {
+    animation: enemy-defeat 0.6s steps(5) forwards;
+}
+
+.shake {
+    animation: screen-shake 0.2s;
 }
