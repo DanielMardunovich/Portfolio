@@ -6,16 +6,28 @@ export default function PartyStats() {
             <div className="ui-box right">
                 <div className="stats">
                     <div className="row">
+                        <span>The Social grip</span>
+                        <span>Info</span>
+                    </div>
+                    <div className="row">
                         <span>Bullet Dance</span>
-                        <span>52 / 59</span>
+                        <span>Info</span>
                     </div>
                     <div className="row">
                         <span>Cosmosis</span>
-                        <span>40 / 60</span>
+                        <span>Info</span>
                     </div>
                     <div className="row">
                         <span>Thrall</span>
-                        <span>29 / 32</span>
+                        <span>Info</span>
+                    </div>
+                    <div className="row">
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div className="row">
+                        <span></span>
+                        <span>More</span>
                     </div>
                 </div>
             </div>

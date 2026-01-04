@@ -237,14 +237,14 @@ body {
 
 .enemies .enemy:nth-child(2) {
     position: absolute;
-    left: 30px;
+    left: -30px;
     bottom: calc(var(--battle-ground) + 70px);
     animation-delay: 0.25s;
 }
 
 .enemies .enemy:nth-child(3) {
     position: absolute;
-    left: 0;
+    left: 50px;
     bottom: var(--battle-ground);
     animation-delay: 0.4s;
 }
@@ -258,6 +258,10 @@ body {
 }
 .party .game:nth-child(3) .unit {
     transform: scale(1.4) rotate(0deg);
+}
+
+.party .game:nth-child(4) .unit {
+    transform: scale(1.6) rotate(0deg);
 }
 
 .party .game:nth-child(1) {
@@ -279,6 +283,13 @@ body {
     right: 5%;
     bottom: var(--battle-ground);
     animation-delay: 0.5s;
+}
+
+.party .game:nth-child(4) {
+    position: absolute;
+    right: -5%;
+    bottom: calc(var(--battle-ground) + 210px);
+    animation-delay: 0.35s;
 }
 
 .party .game:nth-child(3),
@@ -307,6 +318,9 @@ body {
 }
 .party .game:nth-child(3) .unit {
     animation-duration: 2.9s;
+}
+.party .game:nth-child(4) .unit {
+    animation-duration: 1.9s;
 }
 
 /* =========================================================

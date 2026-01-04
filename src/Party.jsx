@@ -20,6 +20,12 @@ export default function Party() {
                 link="https://develop-thrall-gp3.vercel.app"
                 alt="Thrall"
             />
+
+            <PartyMember
+                icon="GameLogos/TheSocialGrip.png"
+                link="https://chonk-cats-productions.itch.io/the-social-grip-llama-drama"
+                alt="The Social Grip"
+            />
         </div>
     );
 }

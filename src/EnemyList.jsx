@@ -5,7 +5,7 @@ export default function EnemyList() {
 
             <div className="ui-box left">
                 <p>LinkedIn</p>
-                <p>Portfolio</p>
+                <p>Daniel Mardunovich</p>
                 <p>GitHub</p>
             </div>
         </div>
