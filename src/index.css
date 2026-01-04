@@ -1,49 +1,55 @@
 /* =========================================================
-   Fonts & Reset
+   0. Fonts & Global Reset
    ========================================================= */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
 * {
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     width: 100%;
     height: 100%;
     margin: 0;
 }
 
 body {
-    font-family: 'Press Start 2P', monospace;
-    background: url("../public/BattleMaps/sky.png") center / cover no-repeat black;
+    font-family: "Press Start 2P", monospace;
+    background: url("BattleMaps/sky.png") center / cover no-repeat black;
     image-rendering: pixelated;
 }
 
 /* =========================================================
-   4:3 SNES Frame
+   1. Screen Layout (SNES 4:3 Frame)
    ========================================================= */
 .screen {
     aspect-ratio: 4 / 3;
     width: min(100vw, calc(100vh * (4 / 3)));
     height: min(100vh, calc(100vw * (3 / 4)));
     margin: auto;
+
     display: flex;
     flex-direction: column;
 }
 
 /* =========================================================
-   Battlefield & Overlays
+   2. Battlefield (Scene Layer)
    ========================================================= */
 .battlefield {
     flex: 1;
     position: relative;
+
     display: flex;
     justify-content: center;
     align-items: flex-end;
+
     padding-bottom: 8vh;
+
     animation: camera-pan 1.2s ease-out forwards;
 }
 
+/* Scene darkening & vignette */
 .battlefield::before,
 .battlefield::after {
     content: "";
@@ -65,28 +71,34 @@ body {
 }
 
 /* =========================================================
-   Arena (Ground Plane)
+   3. Arena (Ground Plane)
    ========================================================= */
 .arena {
     width: 80%;
     height: 90%;
+
     background-size: cover;
     background-position: center bottom;
     background-repeat: no-repeat;
+
     image-rendering: pixelated;
 
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+
     padding: 0 8vw;
 
     box-shadow:
-        inset 0 -10px 20px rgba(0,0,0,0.3),
-        0 12px 8px rgba(0,0,0,0.4);
+        inset 0 -10px 20px rgba(0, 0, 0, 0.3),
+        0 12px 8px rgba(0, 0, 0, 0.4);
+
+    transform: scale(1.05);
+    animation: battle-zoom 1.2s ease-out forwards;
 }
 
 /* =========================================================
-   Enemies & Party Layout
+   4. Unit Columns (Enemies / Party)
    ========================================================= */
 .enemies,
 .party {
@@ -95,29 +107,60 @@ body {
     gap: 2vh;
 }
 
-.enemies { margin-left: 2vw; }
-.party   { margin-right: 2vw; }
+.enemies {
+    margin-left: 2vw;
+}
+
+.party {
+    margin-right: 2vw;
+}
 
 /* =========================================================
-   Units (shared enemy & party visuals)
+   5. Unit Containers (Clickable Entities)
    ========================================================= */
 .enemy,
 .game {
     position: relative;
     z-index: 5;
+
     width: 64px;
     height: 64px;
+
     cursor: pointer;
 }
 
+/* Ground shadow (weight & grounding) */
+.enemy::after,
+.game::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 70%;
+    height: 14px;
+
+    background: rgba(0, 0, 0, 0.45);
+    filter: blur(10px);
+
+    z-index: -1;
+}
+
+/* =========================================================
+   6. Unit Visual (Sprite / Logo Holder)
+   ========================================================= */
 .unit {
-    width: 64px;
-    height: 64px;
+    width: 80px;
+    height: 80px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     transform-origin: center bottom;
     transition: transform 0.25s ease;
+
     animation: enemy-float 2.5s ease-in-out infinite;
 }
 
@@ -125,52 +168,84 @@ body {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+
     image-rendering: pixelated;
 }
 
+/* Party floats slightly slower (heavier feel) */
 .party .unit {
     animation-duration: 3.2s;
 }
 
+/* =========================================================
+   7. Depth, Scale & Perspective
+   ========================================================= */
+/* ---- Enemies ---- */
+.enemies .enemy:nth-child(1) .unit {
+    transform: scale(1.45) rotate(-6deg);
+}
+.enemies .enemy:nth-child(2) .unit {
+    transform: scale(1.2) rotate(-3deg);
+}
+.enemies .enemy:nth-child(3) .unit {
+    transform: scale(1.0) rotate(-1deg);
+}
 
-/* Ground shadow */
-.enemy::after,
-.game::after {
-    content: "";
-    position: absolute;
-    bottom: -6px;
-    width: 80%;
-    height: 8px;
-    background: rgba(0,0,0,0.3);
-    filter: blur(6px);
-    z-index: -1;
+.enemies .enemy:nth-child(1) {
+    margin-bottom: 56px;
+}
+.enemies .enemy:nth-child(2) {
+    margin-bottom: 28px;
+}
+
+/* ---- Party ---- */
+.party .game:nth-child(1) .unit {
+    transform: scale(1.0) rotate(2deg);
+}
+.party .game:nth-child(2) .unit {
+    transform: scale(1.2) rotate(1deg);
+}
+.party .game:nth-child(3) .unit {
+    transform: scale(1.4) rotate(0deg);
+}
+
+.party .game:nth-child(1) {
+    margin-bottom: 56px;
+}
+.party .game:nth-child(2) {
+    margin-bottom: 28px;
 }
 
 /* =========================================================
-   Depth & Angles
+   8. Idle Motion Variation (Organic Feel)
    ========================================================= */
-/* Enemies */
-.enemies .enemy:nth-child(1) .unit { transform: scale(1.35) rotate(-8deg); }
-.enemies .enemy:nth-child(2) .unit { transform: scale(1.15) rotate(-4deg); }
-.enemies .enemy:nth-child(3) .unit { transform: scale(1.0)  rotate(-2deg); }
+.enemies .enemy:nth-child(1) .unit {
+    animation-duration: 2.6s;
+}
+.enemies .enemy:nth-child(2) .unit {
+    animation-duration: 3.1s;
+}
+.enemies .enemy:nth-child(3) .unit {
+    animation-duration: 3.6s;
+}
 
-.enemies .enemy:nth-child(1) { margin-bottom: 48px; }
-.enemies .enemy:nth-child(2) { margin-bottom: 24px; }
-
-/* Party */
-.party .game:nth-child(1) .unit { transform: scale(1.0)  rotate(3deg); }
-.party .game:nth-child(2) .unit { transform: scale(1.15) rotate(2deg); }
-.party .game:nth-child(3) .unit { transform: scale(1.3)  rotate(1deg); }
-
-.party .game:nth-child(1) { margin-bottom: 48px; }
-.party .game:nth-child(2) { margin-bottom: 24px; }
+.party .game:nth-child(1) .unit {
+    animation-duration: 3.8s;
+}
+.party .game:nth-child(2) .unit {
+    animation-duration: 3.2s;
+}
+.party .game:nth-child(3) .unit {
+    animation-duration: 2.9s;
+}
 
 /* =========================================================
-   UI
+   9. UI (Battle Menu)
    ========================================================= */
 .ui {
     height: 30%;
     background: black;
+
     display: flex;
     gap: 0.7vw;
     padding: 0.5vw;
@@ -185,8 +260,10 @@ body {
     position: absolute;
     top: -22px;
     left: 16px;
+
     padding: 6px 12px;
     font-size: 10px;
+
     color: white;
     background: linear-gradient(#1b3f8b, #152c66);
     border: 4px solid white;
@@ -195,6 +272,7 @@ body {
 .ui-box {
     height: 100%;
     padding: 1.2rem;
+
     color: white;
     background: linear-gradient(#1b3f8b, #152c66);
     border: 2px solid white;
@@ -212,7 +290,7 @@ body {
 }
 
 /* =========================================================
-   Animations
+   10. Animations
    ========================================================= */
 @keyframes enemy-float {
     0%   { transform: translateY(0); }
@@ -221,20 +299,39 @@ body {
 }
 
 @keyframes camera-pan {
-    from { transform: translateY(-30px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes battle-zoom {
+    from {
+        transform: scale(1.12);
+    }
+    to {
+        transform: scale(1.05);
+    }
 }
 
 @keyframes enemy-defeat {
-    from { opacity: 1; transform: scale(1); }
-    to   { opacity: 0; transform: scale(0); }
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0);
+    }
 }
 
-.enemy.defeated {
-    animation: enemy-defeat 0.6s steps(5) forwards;
-}
-
+/* =========================================================
+   11. State Overrides
+   ========================================================= */
 .enemy.defeated .unit {
     animation: enemy-defeat 0.6s steps(5) forwards;
 }
-

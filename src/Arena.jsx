@@ -10,7 +10,7 @@ const ARENA_BACKGROUNDS = {
 
 export default function Arena({ type = "Forest", children }) {
     const arenaRef = useRef(null);
-    useParallax(arenaRef, 0.4);
+    useParallax(arenaRef, 0.3);
 
     return (
         <div
