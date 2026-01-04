@@ -1,59 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Final Fantasy Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-
     <div class="screen">
 
-        <!-- Battle Area -->
+        <!-- ===================== -->
+        <!-- Battlefield -->
+        <!-- ===================== -->
         <div class="battlefield">
-            <div class="enemies">
-                <a class="enemy enemy-icon LinkedIn" href="https://www.linkedin.com/in/daniel-mardunovich/" target="_blank"
-                    aria-label="LinkedIn Profile">
-                    <img src="./Icons/linkedin.png" alt="LinkedIn">
-                </a>
-                <a class="enemy enemy-icon Self" href="https://danielmardunovich.github.io/Portfolio/" target="_blank"
-                    aria-label="Webpage portfolio">
-                    <img src="./Icons/Self.png" alt="GitHub">
-                </a>
-                <a class="enemy enemy-icon GitHub" href="https://github.com/DanielMardunovich" target="_blank"
-                    aria-label="GitHub Profile">
-                    <img src="./Icons/github.png" alt="GitHub">
-                </a>
-            </div>
+            <div class="arena" data-arena="forest">
 
-            <div class="party">
-                <a class="member game Bullet-Dance" href="https://mattias0004.itch.io/bullet-dance" target="_blank"
-                    aria-label="BulletDance itch.io Page">
-                    <img src="./GameLogos/BulletDance.png" alt="BulletDance">
-                </a>
-                <a class="member game Cosmosis" href="https://futuregames.itch.io/cosmosis" target="_blank"
-                    aria-label="Cosmosis itch.io Page">
-                    <img src="./GameLogos/Cosmosis.png" alt="Thrall">
-                </a>
-                <a class="member game Thrall" href="https://develop-thrall-gp3.vercel.app" target="_blank"
-                    aria-label="Thrall web Page">
-                    <img src="./GameLogos/Thrall.png" alt="Thrall">
-                </a>
-                
-                <div class="member more">More</div>
+                <!-- Enemies -->
+                <div class="enemies">
+                    <a class="enemy enemy-icon LinkedIn"
+                       href="https://www.linkedin.com/in/daniel-mardunovich/"
+                       target="_blank">
+                        <div class="unit">
+                            <img src="./Icons/linkedinpixel.png" alt="LinkedIn">
+                        </div>
+                    </a>
+
+                    <a class="enemy enemy-icon Self"
+                       href="https://danielmardunovich.github.io/Portfolio/"
+                       target="_blank">
+                        <div class="unit">
+                            <img src="./Icons/Self.png" alt="Portfolio">
+                        </div>
+                    </a>
+
+                    <a class="enemy enemy-icon GitHub"
+                       href="https://github.com/DanielMardunovich"
+                       target="_blank">
+                        <div class="unit">
+                            <img src="./Icons/githubpixel.png" alt="GitHub">
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Party -->
+                <div class="party">
+                    <a class="member game"
+                       href="https://mattias0004.itch.io/bullet-dance"
+                       target="_blank">
+                        <div class="unit">
+                            <img src="./GameLogos/BulletDance.png" alt="Bullet Dance">
+                        </div>
+                    </a>
+
+                    <a class="member game"
+                       href="https://futuregames.itch.io/cosmosis"
+                       target="_blank">
+                        <div class="unit">
+                            <img src="./GameLogos/Cosmosis.png" alt="Cosmosis">
+                        </div>
+                    </a>
+
+                    <a class="member game"
+                       href="https://develop-thrall-gp3.vercel.app"
+                       target="_blank">
+                        <div class="unit">
+                            <img src="./GameLogos/Thrall.png" alt="Thrall">
+                        </div>
+                    </a>
+                </div>
+
             </div>
         </div>
 
-        <!-- Bottom UI -->
+        <!-- ===================== -->
+        <!-- UI -->
+        <!-- ===================== -->
         <div class="ui">
 
             <div class="ui-section">
                 <div class="ui-label">ENEMIES</div>
                 <div class="ui-box left">
                     <p>LinkedIn</p>
-                    <p>Daniel Mardunovich</p>
+                    <p>Portfolio</p>
                     <p>GitHub</p>
                 </div>
             </div>
@@ -62,18 +90,25 @@
                 <div class="ui-label">PARTY</div>
                 <div class="ui-box right">
                     <div class="stats">
-                        <div class="row"><span>Bullet Dance</span><span>52 / 59</span></div>
-                        <div class="row"><span>Cosmosis</span><span>40 / 60</span></div>
-                        <div class="row"><span>Thrall</span><span>29 / 32</span></div>
-                        <div class="row"><span>More</span><span>22 / 26</span></div>
+                        <div class="row">
+                            <span>Bullet Dance</span>
+                            <span>52 / 59</span>
+                        </div>
+                        <div class="row">
+                            <span>Cosmosis</span>
+                            <span>40 / 60</span>
+                        </div>
+                        <div class="row">
+                            <span>Thrall</span>
+                            <span>29 / 32</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
-
     </div>
+
     <script src="./script.js"></script>
 </body>
-
 </html>
