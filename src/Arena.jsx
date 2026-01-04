@@ -3,12 +3,12 @@ import { useRef } from "react";
 import useParallax from "./useParallax";
 
 const ARENA_BACKGROUNDS = {
-    Forest: "/BattleMaps/battleback1.png",
-    Desert: "/BattleMaps/battleback3.png",
-    Dungeon: "/BattleMaps/battleback8.png"
+    Forest: "BattleMaps/battleback1.png",
+    Desert: "BattleMaps/battleback3.png",
+    Dungeon: "BattleMaps/battleback8.png"
 };
 
-export default function Arena({ type = "forest", children }) {
+export default function Arena({ type = "Forest", children }) {
     const arenaRef = useRef(null);
     useParallax(arenaRef, 0.4);
 

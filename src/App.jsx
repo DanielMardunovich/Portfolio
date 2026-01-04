@@ -14,17 +14,17 @@ export default function App() {
 
                     <div className="enemies">
                         <Enemy
-                            icon="/Icons/linkedinpixel.png"
+                            icon="Icons/linkedinpixel.png"
                             link="https://www.linkedin.com/in/daniel-mardunovich/"
                             className="LinkedIn"
                         />
                         <Enemy
-                            icon="/Icons/Self.png"
+                            icon="Icons/Self.png"
                             link="https://danielmardunovich.github.io/Portfolio/"
                             className="Self"
                         />
                         <Enemy
-                            icon="/Icons/githubpixel.png"
+                            icon="Icons/githubpixel.png"
                             link="https://github.com/DanielMardunovich"
                             className="GitHub"
                         />

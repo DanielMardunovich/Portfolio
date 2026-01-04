@@ -15,7 +15,7 @@ html, body {
 
 body {
     font-family: 'Press Start 2P', monospace;
-    background: url("./BattleMaps/sky.png") center / cover no-repeat black;
+    background: url("../public/BattleMaps/sky.png") center / cover no-repeat black;
     image-rendering: pixelated;
 }
 
