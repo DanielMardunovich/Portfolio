@@ -1,8 +1,19 @@
 /* =========================================================
-   0. Fonts & Global Reset
+   0. Imports & Root Variables
    ========================================================= */
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
+:root {
+    --font-family: "Press Start 2P", monospace;
+    --ui-gradient-start: #1b3f8b;
+    --ui-gradient-end: #152c66;
+    --battle-ground: 25%;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+/* =========================================================
+   1. Reset & Base
+   ========================================================= */
 * {
     box-sizing: border-box;
 }
@@ -15,7 +26,7 @@ body {
 }
 
 body {
-    font-family: "Press Start 2P", monospace;
+    font-family: var(--font-family);
     background: url("../public/BattleMaps/sky.png") center / cover no-repeat black;
     image-rendering: pixelated;
 }
@@ -81,7 +92,7 @@ body {
     background-position: center bottom;
     background-repeat: no-repeat;
 
-    --battle-ground: 25%;
+    /* --battle-ground is defined in :root */
 
     image-rendering: pixelated;
 
@@ -134,13 +145,7 @@ body {
     height: 100%;
 }
 
-.enemies .unit {
-    transform-origin: center bottom;
-}
-
-.party .unit {
-    transform-origin: center bottom;
-}
+/* transform-origin for units defined earlier */
 
 /* =========================================================
    5. Unit Containers (Clickable Entities)
@@ -349,7 +354,7 @@ body {
     font-size: 10px;
 
     color: white;
-    background: linear-gradient(#1b3f8b, #152c66);
+    background: linear-gradient(var(--ui-gradient-start), var(--ui-gradient-end));
     border: 4px solid white;
 }
 
@@ -358,7 +363,7 @@ body {
     padding: 1.2rem;
 
     color: white;
-    background: linear-gradient(#1b3f8b, #152c66);
+    background: linear-gradient(var(--ui-gradient-start), var(--ui-gradient-end));
     border: 2px solid white;
 }
 
