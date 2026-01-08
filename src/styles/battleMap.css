@@ -1,0 +1,27 @@
+.battle-map {
+  position: fixed;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #2b2f36;
+}
+
+.battle-map {
+  cursor: grab;
+}
+
+.battle-map:active {
+  cursor: grabbing;
+}
+
+
+.battle-map.MAP_INTRO,
+.battle-map.MAP_IDLE {
+  filter: none;
+  transform: scale(1.02);
+}
