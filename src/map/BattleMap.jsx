@@ -130,6 +130,8 @@ const updateScale = () => {
       }
     }
 
+    console.log(map);
+
     drawGrid(ctx, tilesX, tilesY, TILE_SIZE);
   };
 
@@ -140,7 +142,7 @@ const updateScale = () => {
   useEffect(() => {
     if (phase !== PHASES.MAP_INTRO) return;
 
-    tilesetRef.current.src = "/Portfolio/TileMap/snow-expansion.png";
+    tilesetRef.current.src = "/Portfolio/TileMap/RPGpack_sheet.png";
 
     tilesetRef.current.onload = () => {
       mapRef.current = generateMap(MAP_WIDTH, MAP_HEIGHT);

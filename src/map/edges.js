@@ -1,8 +1,9 @@
 export const EDGES = {
   GRASS: "grass",
-  SNOW: "snow",
   WATER: "water",
   DIRT: "dirt",
-  STONE: "stone",
-  CLIFF: "cliff",
+  DIRTROADLEFT: "dirtroadleft",
+  DIRTROADRIGHT: "dirtroadright",
+  DIRTROADUP: "dirtroadup",
+  DIRTROADDOWN: "dirtroaddown"
 };

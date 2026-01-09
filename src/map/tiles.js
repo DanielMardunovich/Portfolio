@@ -1,7 +1,7 @@
 // src/map/tiles.js
 import { EDGES } from "./edges";
 
-export const TILE_SIZE = 16;
+export const TILE_SIZE = 64;
 
 export const TILES = [
   /* =========================
@@ -9,10 +9,10 @@ export const TILES = [
   ========================= */
 
   {
-    id: "grass_center",
+    id: "grass_center1",
     terrain: "grass",
-    sx: 0,
-    sy: 0,
+    sx: 1,
+    sy: 1,
     edges: {
       up: EDGES.GRASS,
       down: EDGES.GRASS,
@@ -21,79 +21,135 @@ export const TILES = [
     },
     weight: 8,
   },
-
   {
-    id: "grass_snow_north",
+    id: "grass_center2",
     terrain: "grass",
-    sx: 1,
-    sy: 0,
+    sx: 3,
+    sy: 2,
     edges: {
-      up: EDGES.SNOW,
+      up: EDGES.GRASS,
       down: EDGES.GRASS,
       left: EDGES.GRASS,
       right: EDGES.GRASS,
     },
-    weight: 2,
+    weight: 8,
   },
-
   {
-    id: "grass_dirt_north",
+    id: "grass_center3",
     terrain: "grass",
-    sx: 2,
+    sx: 4,
+    sy: 2,
+    edges: {
+      up: EDGES.GRASS,
+      down: EDGES.GRASS,
+      left: EDGES.GRASS,
+      right: EDGES.GRASS,
+    },
+    weight: 8,
+  },
+  {
+    id: "grass_top_left",
+    terrain: "grass",
+    sx: 0,
+    sy: 0,
+    edges: {
+      up: EDGES.DIRT,
+      down: EDGES.DIRTROADLEFT,
+      left: EDGES.DIRT,
+      right: EDGES.DIRTROADUP,
+    },
+    weight: 8,
+  },
+  {
+    id: "grass_top_center",
+    terrain: "grass",
+    sx: 1,
     sy: 0,
     edges: {
       up: EDGES.DIRT,
       down: EDGES.GRASS,
-      left: EDGES.GRASS,
-      right: EDGES.GRASS,
+      left: EDGES.DIRTROADUP,
+      right: EDGES.DIRTROADUP,
     },
-    weight: 2,
+    weight: 8,
   },
-
-  /* =========================
-     SNOW
-  ========================= */
-
   {
-    id: "snow_center",
-    terrain: "snow",
+    id: "grass_top_right",
+    terrain: "grass",
+    sx: 0,
+    sy: 2,
+    edges: {
+      up: EDGES.DIRT,
+      down: EDGES.DIRTROADRIGHT,
+      left: EDGES.DIRTROADUP,
+      right: EDGES.DIRT,
+    },
+    weight: 8,
+  },
+  {
+    id: "grass_center_left",
+    terrain: "grass",
     sx: 0,
     sy: 1,
     edges: {
-      up: EDGES.SNOW,
-      down: EDGES.SNOW,
-      left: EDGES.SNOW,
-      right: EDGES.SNOW,
+      up: EDGES.DIRTROADLEFT,
+      down: EDGES.DIRTROADLEFT,
+      left: EDGES.DIRT,
+      right: EDGES.GRASS,
     },
-    weight: 6,
+    weight: 8,
   },
-
   {
-    id: "snow_grass_south",
-    terrain: "snow",
-    sx: 1,
-    sy: 1,
-    edges: {
-      up: EDGES.SNOW,
-      down: EDGES.GRASS,
-      left: EDGES.SNOW,
-      right: EDGES.SNOW,
-    },
-    weight: 2,
-  },
-
-  {
-    id: "snow_stone_south",
-    terrain: "snow",
+    id: "grass_center_right",
+    terrain: "grass",
     sx: 2,
     sy: 1,
     edges: {
-      up: EDGES.SNOW,
-      down: EDGES.STONE,
-      left: EDGES.SNOW,
-      right: EDGES.SNOW,
+      up: EDGES.DIRTROADRIGHT,
+      down: EDGES.DIRTROADRIGHT,
+      left: EDGES.GRASS,
+      right: EDGES.DIRT,
     },
-    weight: 1,
+    weight: 8,
+  },
+  {
+    id: "grass_bottom_left",
+    terrain: "grass",
+    sx: 0,
+    sy: 2,
+    edges: {
+      up: EDGES.DIRTROADLEFT,
+      down: EDGES.DIRT,
+      left: EDGES.DIRT,
+      right: EDGES.DIRTROADDOWN,
+    },
+    weight: 8,
+  },
+  {
+    id: "grass_bottom_center",
+    terrain: "grass",
+    sx: 1,
+    sy: 2,
+    edges: {
+      up: EDGES.GRASS,
+      down: EDGES.DIRT,
+      left: EDGES.DIRTROADDOWN,
+      right: EDGES.DIRTROADDOWN,
+    },
+    weight: 8,
+  },
+  {
+    id: "grass_bottom_right",
+    terrain: "grass",
+    sx: 2,
+    sy: 2,
+    edges: {
+      up: EDGES.DIRTROADRIGHT,
+      down: EDGES.DIRT,
+      left: EDGES.DIRTROADDOWN,
+      right: EDGES.DIRT,
+    },
+    weight: 8,
   },
 
   /* =========================
@@ -103,78 +159,31 @@ export const TILES = [
   {
     id: "dirt_center",
     terrain: "dirt",
-    sx: 0,
-    sy: 2,
+    sx: 6,
+    sy: 1,
     edges: {
       up: EDGES.DIRT,
       down: EDGES.DIRT,
       left: EDGES.DIRT,
       right: EDGES.DIRT,
     },
-    weight: 6,
-  },
-
-  {
-    id: "dirt_grass_south",
-    terrain: "dirt",
-    sx: 1,
-    sy: 2,
-    edges: {
-      up: EDGES.DIRT,
-      down: EDGES.GRASS,
-      left: EDGES.DIRT,
-      right: EDGES.DIRT,
-    },
-    weight: 2,
+    weight: 8,
   },
 
   /* =========================
      WATER
   ========================= */
-
   {
     id: "water_center",
     terrain: "water",
     sx: 0,
-    sy: 3,
+    sy: 8,
     edges: {
       up: EDGES.WATER,
       down: EDGES.WATER,
       left: EDGES.WATER,
       right: EDGES.WATER,
     },
-    weight: 4,
-  },
-
-  {
-    id: "water_grass_north",
-    terrain: "water",
-    sx: 1,
-    sy: 3,
-    edges: {
-      up: EDGES.GRASS,
-      down: EDGES.WATER,
-      left: EDGES.WATER,
-      right: EDGES.WATER,
-    },
-    weight: 1,
-  },
-
-  /* =========================
-     STONE
-  ========================= */
-
-  {
-    id: "stone_center",
-    terrain: "stone",
-    sx: 0,
-    sy: 4,
-    edges: {
-      up: EDGES.STONE,
-      down: EDGES.STONE,
-      left: EDGES.STONE,
-      right: EDGES.STONE,
-    },
-    weight: 3,
-  },
+    weight: 8,
+  }
 ];
