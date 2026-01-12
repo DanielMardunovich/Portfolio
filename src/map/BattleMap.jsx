@@ -210,7 +210,7 @@ const updateScale = () => {
     console.log("Clicked tile:", {
       tileId,
       mapX,
-      mapY,
+      mapY
     });
   };
 

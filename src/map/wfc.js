@@ -37,9 +37,7 @@ function createGrid(width, height) {
 }
 
 function entropy(cell) {
-  const weights = cell.options.map(
-    id => TILE_LOOKUP[id].weight
-  );
+  const weights = cell.options.map(id => TILE_LOOKUP[id].weight);
 
   const sum = weights.reduce((a, b) => a + b, 0);
 
@@ -48,6 +46,7 @@ function entropy(cell) {
     return e + p * Math.log(p);
   }, 0);
 }
+
 
 function findLowestEntropyCell(grid) {
   let best = null;
@@ -72,7 +71,6 @@ function weightedRandom(options) {
   }
 
   let r = Math.random() * total;
-
   for (const id of options) {
     r -= TILE_LOOKUP[id].weight;
     if (r <= 0) return id;
@@ -86,6 +84,16 @@ function collapse(cell) {
   const choice = weightedRandom(cell.options);
   cell.options = [choice];
   cell.collapsed = true;
+}
+
+function forceTile(grid, x, y, tileId) {
+  const cell = grid[y]?.[x];
+  if (!cell) return;
+
+  cell.options = [tileId];
+  cell.collapsed = true;
+
+  propagate(grid, x, y);
 }
 
 
@@ -127,6 +135,9 @@ function propagate(grid, startX, startY) {
 export function generateMap(width, height) {
   const grid = createGrid(width, height);
 
+  //Force tiles here
+  forceTile(grid, 10, 10, "grass");
+  
   while (true) {
     const target = findLowestEntropyCell(grid);
     if (!target) break;
