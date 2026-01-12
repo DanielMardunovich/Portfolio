@@ -1,189 +1,46 @@
-// src/map/tiles.js
-import { EDGES } from "./edges";
-
-export const TILE_SIZE = 64;
+export const TILE_SIZE = 16;
 
 export const TILES = [
-  /* =========================
-     GRASS
-  ========================= */
+  { id: "grass", sx: 0, sy: 0, weight: 6 },
+  { id: "grass1", sx: 1, sy: 0, weight: 6 },
+  { id: "grass2", sx: 2, sy: 0, weight: 6 },
 
-  {
-    id: "grass_center1",
-    terrain: "grass",
-    sx: 1,
-    sy: 1,
-    edges: {
-      up: EDGES.GRASS,
-      down: EDGES.GRASS,
-      left: EDGES.GRASS,
-      right: EDGES.GRASS,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_center2",
-    terrain: "grass",
-    sx: 3,
-    sy: 2,
-    edges: {
-      up: EDGES.GRASS,
-      down: EDGES.GRASS,
-      left: EDGES.GRASS,
-      right: EDGES.GRASS,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_center3",
-    terrain: "grass",
-    sx: 4,
-    sy: 2,
-    edges: {
-      up: EDGES.GRASS,
-      down: EDGES.GRASS,
-      left: EDGES.GRASS,
-      right: EDGES.GRASS,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_top_left",
-    terrain: "grass",
-    sx: 0,
-    sy: 0,
-    edges: {
-      up: EDGES.DIRT,
-      down: EDGES.DIRTROADLEFT,
-      left: EDGES.DIRT,
-      right: EDGES.DIRTROADUP,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_top_center",
-    terrain: "grass",
-    sx: 1,
-    sy: 0,
-    edges: {
-      up: EDGES.DIRT,
-      down: EDGES.GRASS,
-      left: EDGES.DIRTROADUP,
-      right: EDGES.DIRTROADUP,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_top_right",
-    terrain: "grass",
-    sx: 0,
-    sy: 2,
-    edges: {
-      up: EDGES.DIRT,
-      down: EDGES.DIRTROADRIGHT,
-      left: EDGES.DIRTROADUP,
-      right: EDGES.DIRT,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_center_left",
-    terrain: "grass",
-    sx: 0,
-    sy: 1,
-    edges: {
-      up: EDGES.DIRTROADLEFT,
-      down: EDGES.DIRTROADLEFT,
-      left: EDGES.DIRT,
-      right: EDGES.GRASS,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_center_right",
-    terrain: "grass",
-    sx: 2,
-    sy: 1,
-    edges: {
-      up: EDGES.DIRTROADRIGHT,
-      down: EDGES.DIRTROADRIGHT,
-      left: EDGES.GRASS,
-      right: EDGES.DIRT,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_bottom_left",
-    terrain: "grass",
-    sx: 0,
-    sy: 2,
-    edges: {
-      up: EDGES.DIRTROADLEFT,
-      down: EDGES.DIRT,
-      left: EDGES.DIRT,
-      right: EDGES.DIRTROADDOWN,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_bottom_center",
-    terrain: "grass",
-    sx: 1,
-    sy: 2,
-    edges: {
-      up: EDGES.GRASS,
-      down: EDGES.DIRT,
-      left: EDGES.DIRTROADDOWN,
-      right: EDGES.DIRTROADDOWN,
-    },
-    weight: 8,
-  },
-  {
-    id: "grass_bottom_right",
-    terrain: "grass",
-    sx: 2,
-    sy: 2,
-    edges: {
-      up: EDGES.DIRTROADRIGHT,
-      down: EDGES.DIRT,
-      left: EDGES.DIRTROADDOWN,
-      right: EDGES.DIRT,
-    },
-    weight: 8,
-  },
+  { id: "water", sx: 1, sy: 2, weight: 1 },
 
-  /* =========================
-     DIRT
-  ========================= */
+  // Water Tiles L
 
-  {
-    id: "dirt_center",
-    terrain: "dirt",
-    sx: 6,
-    sy: 1,
-    edges: {
-      up: EDGES.DIRT,
-      down: EDGES.DIRT,
-      left: EDGES.DIRT,
-      right: EDGES.DIRT,
-    },
-    weight: 8,
-  },
+  { id: "water_corner_tl", sx: 0, sy: 1, weight: 1 },
+  { id: "water_corner_cl", sx: 0, sy: 2, weight: 1 },
+  { id: "water_corner_bl", sx: 0, sy: 3, weight: 1 },
+  { id: "water_river_tl", sx: 3, sy: 0, weight: 1 },
+  { id: "water_river_entrance_l", sx: 2, sy: 4, weight: 1 },
+  { id: "water_dirtcorner_tl", sx: 0, sy: 5, weight: 1 },
+  { id: "water_dirtcorner_bl", sx: 3, sy: 5, weight: 1 },
+  { id: "water_river_bl", sx: 3, sy: 1, weight: 1 },
+  { id: "water_river_ending_l", sx: 6, sy: 1, weight: 1 },
 
-  /* =========================
-     WATER
-  ========================= */
-  {
-    id: "water_center",
-    terrain: "water",
-    sx: 0,
-    sy: 8,
-    edges: {
-      up: EDGES.WATER,
-      down: EDGES.WATER,
-      left: EDGES.WATER,
-      right: EDGES.WATER,
-    },
-    weight: 8,
-  }
+  // Water Tiles R
+  { id: "water_corner_tr", sx: 2, sy: 1, weight: 1 },
+  { id: "water_corner_br", sx: 2, sy: 3, weight: 1 },
+  { id: "water_river_tr", sx: 4, sy: 0, weight: 1 },
+  { id: "water_river_br", sx: 4, sy: 1, weight: 1 },
+  { id: "water_river_entrance_r", sx: 0, sy: 4, weight: 1 },
+  { id: "water_corner_cr", sx: 2, sy: 2, weight: 1 },
+  { id: "water_dirtcorner_tr", sx: 1, sy: 5, weight: 1 },
+  { id: "water_dirtcorner_br", sx: 2, sy: 5, weight: 1 },
+  { id: "water_river_ending_r", sx: 6, sy: 0, weight: 1 },
+
+  // Water Tiles C
+  { id: "water_corner_tc", sx: 1, sy: 1, weight: 1 },
+  { id: "water_corner_bc", sx: 1, sy: 3, weight: 1 },
+  { id: "water_river_rl", sx: 1, sy: 4, weight:1 },
+
+  //Water tiles U D
+  { id: "water_river_entrance_d", sx: 3, sy: 2, weight: 1 },
+  { id: "water_river_d", sx: 3, sy: 3, weight: 1},
+  { id: "water_river_ending_d", sx: 5, sy: 1, weight: 1 },
+
+  { id: "water_river_entrance_u", sx: 3, sy: 4, weight: 1 },
+  { id: "water_river_ending_u", sx: 5, sy: 0, weight: 1 },
+
 ];

@@ -129,9 +129,6 @@ const updateScale = () => {
         );
       }
     }
-
-    console.log(map);
-
     drawGrid(ctx, tilesX, tilesY, TILE_SIZE);
   };
 
@@ -142,10 +139,13 @@ const updateScale = () => {
   useEffect(() => {
     if (phase !== PHASES.MAP_INTRO) return;
 
-    tilesetRef.current.src = "/Portfolio/TileMap/RPGpack_sheet.png";
+    tilesetRef.current.src = "/Portfolio/TileMap/tilemap.png";
 
     tilesetRef.current.onload = () => {
       mapRef.current = generateMap(MAP_WIDTH, MAP_HEIGHT);
+
+      console.log("Generated Map:", mapRef.current);
+
       redraw();
       updateScale();
       setTimeout(() => setPhase(PHASES.MAP_IDLE), 300);
@@ -177,6 +177,47 @@ const updateScale = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [phase]);
+
+  useEffect(() => {
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+
+  const onClick = (e) => {
+    const rect = canvas.getBoundingClientRect();
+
+    // Mouse position in canvas space (account for CSS scale)
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const cx = (e.clientX - rect.left) * scaleX;
+    const cy = (e.clientY - rect.top) * scaleY;
+
+    // Tile position in view
+    const tileX = Math.floor(cx / TILE_SIZE);
+    const tileY = Math.floor(cy / TILE_SIZE);
+
+    const cam = cameraRef.current;
+
+    // Tile position in map
+    const mapX = cam.x + tileX;
+    const mapY = cam.y + tileY;
+
+    const map = mapRef.current;
+    if (!map?.[mapY]?.[mapX]) return;
+
+    const tileId = map[mapY][mapX];
+
+    console.log("Clicked tile:", {
+      tileId,
+      mapX,
+      mapY,
+    });
+  };
+
+  canvas.addEventListener("click", onClick);
+  return () => canvas.removeEventListener("click", onClick);
+}, []);
+
 
   /* =========================
      RESIZE

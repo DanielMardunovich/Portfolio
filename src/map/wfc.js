@@ -1,9 +1,13 @@
 import { TILES } from "./tiles";
+import { EDGES } from "./edges";
 
-
-const TILE_BY_ID = Object.fromEntries(
-  TILES.map((t) => [t.id, t])
+const TILE_LOOKUP = Object.fromEntries(
+  TILES.map(t => [t.id, t])
 );
+
+const ALL_TILE_IDS = TILES.map(t => t.id);
+
+
 
 const DIRECTIONS = {
   up: [0, -1],
@@ -19,102 +23,121 @@ const OPPOSITE = {
   right: "left",
 };
 
-function weightedRandom(options) {
-  const total = options.reduce(
-    (sum, id) => sum + TILE_BY_ID[id].weight,
-    0
+function createCell() {
+  return {
+    collapsed: false,
+    options: [...ALL_TILE_IDS],
+  };
+}
+
+function createGrid(width, height) {
+  return Array.from({ length: height }, () =>
+    Array.from({ length: width }, () => createCell())
   );
+}
+
+function entropy(cell) {
+  const weights = cell.options.map(
+    id => TILE_LOOKUP[id].weight
+  );
+
+  const sum = weights.reduce((a, b) => a + b, 0);
+
+  return -weights.reduce((e, w) => {
+    const p = w / sum;
+    return e + p * Math.log(p);
+  }, 0);
+}
+
+function findLowestEntropyCell(grid) {
+  let best = null;
+
+  grid.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      if (cell.collapsed || cell.options.length === 0) return;
+
+      if (!best || entropy(cell) < entropy(best.cell)) {
+        best = { cell, x, y };
+      }
+    });
+  });
+
+  return best;
+}
+
+function weightedRandom(options) {
+  let total = 0;
+  for (const id of options) {
+    total += TILE_LOOKUP[id].weight;
+  }
 
   let r = Math.random() * total;
 
   for (const id of options) {
-    r -= TILE_BY_ID[id].weight;
+    r -= TILE_LOOKUP[id].weight;
     if (r <= 0) return id;
   }
+
+  return options[0];
 }
 
-function compatible(a, b, dir) {
-  return (
-    TILE_BY_ID[a].edges[dir] ===
-    TILE_BY_ID[b].edges[OPPOSITE[dir]]
-  );
+
+function collapse(cell) {
+  const choice = weightedRandom(cell.options);
+  cell.options = [choice];
+  cell.collapsed = true;
+}
+
+
+
+function propagate(grid, startX, startY) {
+  const stack = [{ x: startX, y: startY }];
+
+  const dirs = [
+    { dx: 0, dy: -1, dir: "up", opp: "down" },
+    { dx: 0, dy: 1, dir: "down", opp: "up" },
+    { dx: -1, dy: 0, dir: "left", opp: "right" },
+    { dx: 1, dy: 0, dir: "right", opp: "left" },
+  ];
+
+  while (stack.length) {
+    const { x, y } = stack.pop();
+    const cell = grid[y][x];
+
+    for (const { dx, dy, dir } of dirs) {
+      const nx = x + dx;
+      const ny = y + dy;
+      const neighbor = grid[ny]?.[nx];
+      if (!neighbor || neighbor.collapsed) continue;
+
+      const allowed = neighbor.options.filter(option =>
+        cell.options.some(tile =>
+          EDGES[tile][dir].includes(option)
+        )
+      );
+
+      if (allowed.length < neighbor.options.length) {
+        neighbor.options = allowed;
+        stack.push({ x: nx, y: ny });
+      }
+    }
+  }
 }
 
 export function generateMap(width, height) {
-  const grid = Array.from({ length: height }, () =>
-    Array.from({ length: width }, () => ({
-      collapsed: false,
-      options: TILES.map((t) => t.id),
-    }))
-  );
-
-  function collapseLowestEntropy() {
-    let best = null;
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const cell = grid[y][x];
-        if (!cell.collapsed) {
-          if (!best || cell.options.length < best.options.length) {
-            best = { x, y, options: cell.options };
-          }
-        }
-      }
-    }
-
-    return best;
-  }
-
-  function propagate(x, y) {
-    const stack = [[x, y]];
-
-    while (stack.length) {
-      const [cx, cy] = stack.pop();
-      const cell = grid[cy][cx];
-
-      for (const dir in DIRECTIONS) {
-        const [dx, dy] = DIRECTIONS[dir];
-        const nx = cx + dx;
-        const ny = cy + dy;
-
-        if (
-          nx < 0 || ny < 0 ||
-          nx >= width || ny >= height
-        ) continue;
-
-        const neighbor = grid[ny][nx];
-        if (neighbor.collapsed) continue;
-
-        const valid = neighbor.options.filter((opt) =>
-          cell.options.some((c) =>
-            compatible(c, opt, dir)
-          )
-        );
-
-        if (valid.length < neighbor.options.length) {
-          neighbor.options = valid;
-          stack.push([nx, ny]);
-        }
-      }
-    }
-  }
+  const grid = createGrid(width, height);
 
   while (true) {
-    const cell = collapseLowestEntropy();
-    if (!cell) break;
+    const target = findLowestEntropyCell(grid);
+    if (!target) break;
 
-    const { x, y } = cell;
-    const chosen = weightedRandom(grid[y][x].options);
-
-    grid[y][x] = {
-      collapsed: true,
-      options: [chosen],
-    };
-
-    propagate(x, y);
+    collapse(target.cell);
+    propagate(grid, target.x, target.y);
   }
 
-  return grid.map((row) =>
-    row.map((cell) => cell.options[0])
+  // return tile IDs (BattleMap expects this)
+  return grid.map(row =>
+    row.map(cell => cell.options[0])
   );
 }
+
