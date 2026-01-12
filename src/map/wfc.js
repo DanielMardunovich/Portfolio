@@ -136,7 +136,24 @@ export function generateMap(width, height) {
   const grid = createGrid(width, height);
 
   //Force tiles here
-  forceTile(grid, 10, 10, "grass");
+  for(let x = 4; x < 26; x++){
+    for(let y = 4; y < 16; y++){
+      let rand = Math.floor(Math.random() * 3);;
+      switch(rand)
+      {
+        case 0:
+            forceTile(grid, x, y, "grass");
+          break;
+          case 1: 
+            forceTile(grid, x, y, "grass1");
+          break;
+          case 2:
+            forceTile(grid, x, y, "grass2");
+            break;
+      }
+    
+    }
+  }
   
   while (true) {
     const target = findLowestEntropyCell(grid);
