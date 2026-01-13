@@ -11,15 +11,6 @@ body {
   background: #2b2f36;
 }
 
-.battle-map {
-  cursor: grab;
-}
-
-.battle-map:active {
-  cursor: grabbing;
-}
-
-
 .battle-map.MAP_INTRO,
 .battle-map.MAP_IDLE {
   filter: none;

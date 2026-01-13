@@ -7,8 +7,6 @@ const TILE_LOOKUP = Object.fromEntries(
 
 const ALL_TILE_IDS = TILES.map(t => t.id);
 
-
-
 const DIRECTIONS = {
   up: [0, -1],
   down: [0, 1],
@@ -23,6 +21,19 @@ const OPPOSITE = {
   right: "left",
 };
 
+const WATER_EDGE_TILES = [
+  "water",
+  "water_corner_bl",
+  "water_corner_bc",
+  "water_corner_br",
+  "water_corner_tl",
+  "water_corner_tc",
+  "water_corner_tr",
+  "river_rl",
+  "river_tb"
+];
+
+
 function createCell() {
   return {
     collapsed: false,
@@ -36,17 +47,23 @@ function createGrid(width, height) {
   );
 }
 
+//Shannon entropy
 function entropy(cell) {
-  const weights = cell.options.map(id => TILE_LOOKUP[id].weight);
+  if (cell.options.length === 0) return Infinity; //Making sure that entropy cannot return NaN
 
+  const weights = cell.options.map(id => TILE_LOOKUP[id].weight);
   const sum = weights.reduce((a, b) => a + b, 0);
 
-  return -weights.reduce((e, w) => {
-    const p = w / sum;
-    return e + p * Math.log(p);
-  }, 0);
-}
+  if (sum === 0) return Infinity;
 
+  let entr = 0;
+  for (const w of weights) {
+    const p = w / sum;
+    entr -= p * Math.log(p);
+  }
+
+  return entr + Math.random() * 1e-6;
+}
 
 function findLowestEntropyCell(grid) {
   let best = null;
@@ -136,7 +153,7 @@ export function generateMap(width, height) {
   const grid = createGrid(width, height);
 
   //Force tiles here
-  for(let x = 4; x < 26; x++){
+  /*for(let x = 4; x < 26; x++){
     for(let y = 4; y < 16; y++){
       let rand = Math.floor(Math.random() * 3);;
       switch(rand)
@@ -153,7 +170,7 @@ export function generateMap(width, height) {
       }
     
     }
-  }
+  }*/
   
   while (true) {
     const target = findLowestEntropyCell(grid);
