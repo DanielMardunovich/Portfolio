@@ -1,171 +1,277 @@
 import { TILES } from "./tiles";
 import { EDGES } from "./edges";
 
-const TILE_LOOKUP = Object.fromEntries(
-  TILES.map(t => [t.id, t])
-);
+/* ======================================================
+   TILE LOOKUP
+====================================================== */
 
-const ALL_TILE_IDS = TILES.map(t => t.id);
+const TILE = Object.fromEntries(TILES.map(t => [t.id, t]));
+const ALL_IDS = TILES.map(t => t.id);
 
+/* ======================================================
+   TILE SEMANTICS
+====================================================== */
 
+const GRASS = new Set(["grass", "grass1", "grass2"]);
 
-const DIRECTIONS = {
-  up: [0, -1],
-  down: [0, 1],
-  left: [-1, 0],
-  right: [1, 0],
-};
+const isGrass = id => GRASS.has(id);
+const isLake = id => id === "water";
+const isLakeEdge = id => id.startsWith("water_");
+const isRiver = id => id.startsWith("river");
 
-const OPPOSITE = {
-  up: "down",
-  down: "up",
-  left: "right",
-  right: "left",
-};
+const isRiverEntrance = (id) => id.startsWith("river_entrance");
 
-function createCell() {
-  return {
-    collapsed: false,
-    options: [...ALL_TILE_IDS],
-  };
+function entranceWaterDirection(id) {
+  if (id.endsWith("_u")) return [0, 1];   // water BELOW
+  if (id.endsWith("_d")) return [0, -1];  // water ABOVE
+  if (id.endsWith("_l")) return [1, 0];   // water RIGHT
+  if (id.endsWith("_r")) return [-1, 0];  // water LEFT
+  return null;
 }
 
-function createGrid(width, height) {
-  return Array.from({ length: height }, () =>
-    Array.from({ length: width }, () => createCell())
+function entranceTouchesLake(grid, x, y, id) {
+  const dir = entranceWaterDirection(id);
+  if (!dir) return false;
+
+  const [dx, dy] = dir;
+  const n = grid[y + dy]?.[x + dx];
+  if (!n) return false;
+
+  // ✔ If neighbor is already water → valid
+  if (n.collapsed && n.options[0] === "water") return true;
+
+  // ✔ If neighbor could become water → valid
+  return n.options.includes("water");
+}
+
+
+/* ======================================================
+   LIMITS
+====================================================== */
+
+const MAX_LAKES = 1;
+const MAX_LAKE_TILES = 12;
+const MAX_RIVERS = 20;
+
+let lakeCount = 0;
+let lakeTiles = 0;
+let riverCount = 0;
+
+/* ======================================================
+   GRID
+====================================================== */
+
+function makeCell() {
+  return { collapsed: false, options: [...ALL_IDS] };
+}
+
+function makeGrid(w, h) {
+  return Array.from({ length: h }, () =>
+    Array.from({ length: w }, makeCell)
   );
 }
 
-function entropy(cell) {
-  const weights = cell.options.map(id => TILE_LOOKUP[id].weight);
+/* ======================================================
+   UTILS
+====================================================== */
 
-  const sum = weights.reduce((a, b) => a + b, 0);
+const DIRS = [
+  [0,-1], [0,1], [-1,0], [1,0]
+];
 
-  return -weights.reduce((e, w) => {
-    const p = w / sum;
-    return e + p * Math.log(p);
-  }, 0);
+function centerFactor(x, y, w, h) {
+  const cx = (w - 1) / 2;
+  const cy = (h - 1) / 2;
+  return Math.min(1, Math.hypot(x - cx, y - cy) / Math.hypot(cx, cy));
 }
 
+function wetness(y, h) {
+  return 1 - y / (h - 1); // top wet, bottom dry
+}
 
-function findLowestEntropyCell(grid) {
-  let best = null;
-
-  grid.forEach((row, y) => {
-    row.forEach((cell, x) => {
-      if (cell.collapsed || cell.options.length === 0) return;
-
-      if (!best || entropy(cell) < entropy(best.cell)) {
-        best = { cell, x, y };
-      }
-    });
+function touches(grid, x, y, predicate) {
+  return DIRS.some(([dx,dy]) => {
+    const n = grid[y+dy]?.[x+dx];
+    return n?.collapsed && predicate(n.options[0]);
   });
-
-  return best;
 }
 
-function weightedRandom(options) {
-  let total = 0;
-  for (const id of options) {
-    total += TILE_LOOKUP[id].weight;
-  }
+function newLake(grid, x, y) {
+  return !touches(grid, x, y, id => id === "water");
+}
 
-  let r = Math.random() * total;
+function newRiver(grid, x, y) {
+  return !touches(grid, x, y, isRiver);
+}
+
+/* ======================================================
+   WEIGHTED PICK
+====================================================== */
+
+function pick(options, weightFn) {
+  let sum = 0;
+  for (const id of options) sum += weightFn(id);
+
+  let r = Math.random() * sum;
   for (const id of options) {
-    r -= TILE_LOOKUP[id].weight;
+    r -= weightFn(id);
     if (r <= 0) return id;
   }
-
   return options[0];
 }
 
+/* ======================================================
+   COLLAPSE
+====================================================== */
 
-function collapse(cell) {
-  const choice = weightedRandom(cell.options);
+function collapse(cell, x, y, grid, w, h) {
+  const c = centerFactor(x, y, w, h);
+  const wet = wetness(y, h);
+
+  const choice = pick(cell.options, id => {
+    const base = TILE[id].weight;
+
+    // -------- GRASS (arena-safe)
+    if (isGrass(id)) {
+      return base * (1.4 - c);
+    }
+
+    // -------- LAKE INTERIOR
+    if (isLake(id)) {
+      if (lakeTiles >= MAX_LAKE_TILES) return 0.001;
+      if (lakeCount >= MAX_LAKES && newLake(grid, x, y)) return 0.001;
+      return base * (0.6 + wet) * (1 - c);
+    }
+
+    // -------- RIVER LOGIC (ALL river handling is here)
+    if (isRiver(id)) {
+
+      // ---- RIVER ENTRANCE ----
+      if (isRiverEntrance(id)) {
+
+        // MUST have water in the correct direction
+        if (!entranceTouchesLake(grid, x, y, id)) {
+          return 0.001;
+        }
+
+        // Limit number of river systems
+        if (riverCount >= MAX_RIVERS && newRiver(grid, x, y)) {
+          return 0.001;
+        }
+
+        // Bootstrap first river so it can start
+        const bootstrap = riverCount === 0 ? 3.0 : 1.0;
+
+        return base
+          * bootstrap
+          * (1.2 + wet)
+          * (1 - c);
+      }
+
+      // ---- RIVER CONTINUATION ----
+      // Non-entrance river tiles may NOT start rivers
+      if (newRiver(grid, x, y)) {
+        return 0.001;
+      }
+
+      return base
+        * (1.8 + wet)
+        * (1 - c);
+    }
+
+    // -------- LAKE SHAPING
+    if (isLakeEdge(id)) {
+      return base * (1 + wet);
+    }
+
+    return base;
+  });
+
+  // ----- COUNT LAKES
+  if (choice === "water") {
+    if (newLake(grid, x, y)) lakeCount++;
+    lakeTiles++;
+  }
+
+  // ----- COUNT RIVERS (ONLY entrances start rivers)
+  if (isRiverEntrance(choice) && newRiver(grid, x, y)) {
+    riverCount++;
+  }
+
   cell.options = [choice];
   cell.collapsed = true;
 }
 
-function forceTile(grid, x, y, tileId) {
-  const cell = grid[y]?.[x];
-  if (!cell) return;
 
-  cell.options = [tileId];
-  cell.collapsed = true;
+/* ======================================================
+   PROPAGATION
+====================================================== */
 
-  propagate(grid, x, y);
-}
+function propagate(grid, sx, sy) {
+  const stack = [[sx, sy]];
 
-
-
-function propagate(grid, startX, startY) {
-  const stack = [{ x: startX, y: startY }];
-
-  const dirs = [
-    { dx: 0, dy: -1, dir: "up", opp: "down" },
-    { dx: 0, dy: 1, dir: "down", opp: "up" },
-    { dx: -1, dy: 0, dir: "left", opp: "right" },
-    { dx: 1, dy: 0, dir: "right", opp: "left" },
+  const DIRMAP = [
+    { dx:0, dy:-1, dir:"up" },
+    { dx:0, dy:1,  dir:"down" },
+    { dx:-1,dy:0,  dir:"left" },
+    { dx:1, dy:0,  dir:"right" }
   ];
 
   while (stack.length) {
-    const { x, y } = stack.pop();
+    const [x,y] = stack.pop();
     const cell = grid[y][x];
 
-    for (const { dx, dy, dir } of dirs) {
-      const nx = x + dx;
-      const ny = y + dy;
-      const neighbor = grid[ny]?.[nx];
-      if (!neighbor || neighbor.collapsed) continue;
+    for (const {dx,dy,dir} of DIRMAP) {
+      const nx = x+dx, ny = y+dy;
+      const n = grid[ny]?.[nx];
+      if (!n || n.collapsed) continue;
 
-      const allowed = neighbor.options.filter(option =>
-        cell.options.some(tile =>
-          EDGES[tile][dir].includes(option)
-        )
+      const allowed = n.options.filter(o =>
+        cell.options.some(t => EDGES[t][dir].includes(o))
       );
 
-      if (allowed.length < neighbor.options.length) {
-        neighbor.options = allowed;
-        stack.push({ x: nx, y: ny });
+      if (allowed.length < n.options.length) {
+        n.options = allowed;
+        stack.push([nx,ny]);
       }
     }
   }
 }
+
+/* ======================================================
+   ENTROPY
+====================================================== */
+
+function entropy(cell) {
+  const w = cell.options.map(id => TILE[id].weight);
+  const s = w.reduce((a,b)=>a+b,0);
+  return -w.reduce((e,v)=>e+(v/s)*Math.log(v/s),0);
+}
+
+function lowestEntropy(grid) {
+  let best = null;
+  grid.forEach((row,y)=>row.forEach((c,x)=>{
+    if (!c.collapsed && (!best || entropy(c) < entropy(best.cell))) {
+      best = { cell:c, x, y };
+    }
+  }));
+  return best;
+}
+
+/* ======================================================
+   GENERATE
+====================================================== */
 
 export function generateMap(width, height) {
-  const grid = createGrid(width, height);
+  lakeCount = lakeTiles = riverCount = 0;
+  const grid = makeGrid(width, height);
 
-  //Force tiles here
-  for(let x = 4; x < 26; x++){
-    for(let y = 4; y < 16; y++){
-      let rand = Math.floor(Math.random() * 3);;
-      switch(rand)
-      {
-        case 0:
-            forceTile(grid, x, y, "grass");
-          break;
-          case 1: 
-            forceTile(grid, x, y, "grass1");
-          break;
-          case 2:
-            forceTile(grid, x, y, "grass2");
-            break;
-      }
-    
-    }
-  }
-  
   while (true) {
-    const target = findLowestEntropyCell(grid);
-    if (!target) break;
-
-    collapse(target.cell);
-    propagate(grid, target.x, target.y);
+    const t = lowestEntropy(grid);
+    if (!t) break;
+    collapse(t.cell, t.x, t.y, grid, width, height);
+    propagate(grid, t.x, t.y);
   }
 
-  // return tile IDs (BattleMap expects this)
-  return grid.map(row =>
-    row.map(cell => cell.options[0])
-  );
+  return grid.map(r => r.map(c => c.options[0]));
 }
-

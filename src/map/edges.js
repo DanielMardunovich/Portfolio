@@ -4,30 +4,29 @@ export const EDGES = {
       "grass",
       "grass1",
       "grass2",
-      "water_river_br",
-      "water_river_bl",
-      "water_river_bc",
+      "river_br",
+      "river_bl",
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_rl",
+      "river_ending_d",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
       "grass",
       "grass1",
       "grass2",
-      "water_river_tl",
-      "water_river_tr",
+      "river_tl",
+      "river_tr",
       "water_corner_tl",
       "water_corner_tr",
       "water_corner_tc",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "grass",
@@ -36,12 +35,12 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
       "grass",
@@ -50,12 +49,12 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_l"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_l"
     ]
   },
   grass1: {
@@ -63,30 +62,29 @@ export const EDGES = {
       "grass",
       "grass1",
       "grass2",
-      "water_river_br",
-      "water_river_bl",
-      "water_river_bc",
+      "river_br",
+      "river_bl",
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_rl",
+      "river_ending_d",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
       "grass",
       "grass1",
       "grass2",
-      "water_river_tl",
-      "water_river_tr",
+      "river_tl",
+      "river_tr",
       "water_corner_tl",
       "water_corner_tr",
       "water_corner_tc",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "grass",
@@ -95,12 +93,12 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
       "grass",
@@ -109,12 +107,12 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_l"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_l"
     ]
   },
   grass2: {
@@ -122,30 +120,29 @@ export const EDGES = {
       "grass",
       "grass1",
       "grass2",
-      "water_river_br",
-      "water_river_bl",
-      "water_river_bc",
+      "river_br",
+      "river_bl",
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_rl",
+      "river_ending_d",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
       "grass",
       "grass1",
       "grass2",
-      "water_river_tl",
-      "water_river_tr",
+      "river_tl",
+      "river_tr",
       "water_corner_tl",
       "water_corner_tr",
       "water_corner_tc",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "grass",
@@ -154,12 +151,12 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
       "grass",
@@ -168,26 +165,26 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_l"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_l"
     ]
   },
   water: {
     up: [
       "water",
       "water_corner_tc",
-      "water_river_entrance_u",
+      "river_entrance_u",
       "water_dirtcorner_tl",
       "water_dirtcorner_tr"
     ],
     down: [
       "water",
       "water_corner_bc",
-      "water_river_entrance_d",
+      "river_entrance_d",
       "water_dirtcorner_bl",
       "water_dirtcorner_br"
     ],
@@ -195,14 +192,14 @@ export const EDGES = {
       "water",
       "water_corner_cl",
       "water_dirtcorner_bl",
-      "water_river_entrance_l",
+      "river_entrance_l",
       "water_dirtcorner_tl"
     ],
     right: [
       "water",
       "water_corner_cr",
       "water_dirtcorner_br",
-      "water_river_entrance_r",
+      "river_entrance_r",
       "water_dirtcorner_tr"
     ]
   },
@@ -214,11 +211,11 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_d",
+      "river_ending_r",
     ],
     down: [
       "water_corner_cl",
@@ -231,17 +228,17 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_ending_l"
+      "river_ending_l"
     ]
   },
   water_corner_tc: {
@@ -252,17 +249,17 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_d",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
       "water",
       "water_corner_bc",
-      "water_river_entrance_d",
+      "river_entrance_d",
       "water_dirtcorner_br",
       "water_dirtcorner_bl"
     ],
@@ -281,12 +278,12 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_l",
-      "water_river_ending_r",
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_d",
+      "river_ending_l",
+      "river_ending_r",
     ],
     down: [
       "water_corner_cr",
@@ -303,11 +300,11 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d"
     ]
   },
   water_corner_cl: {
@@ -326,20 +323,20 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
       "water",
       "water_corner_cr",
-      "water_river_entrance_r",
+      "river_entrance_r",
       "water_dirtcorner_tr",
       "water_dirtcorner_br",
-      "water_river_ending_l"
+      "river_ending_l"
     ]
   },
   water_corner_cr: {
@@ -354,7 +351,7 @@ export const EDGES = {
     left: [
       "water",
       "water_corner_cl",
-      "water_river_entrance_l",
+      "river_entrance_l",
       "water_dirtcorner_tl",
       "water_dirtcorner_bl"
     ],
@@ -365,11 +362,11 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d"
     ]
   },
   water_corner_bl: {
@@ -384,12 +381,12 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_tr",
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "grass",
@@ -398,24 +395,24 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
       "water_corner_bc",
       "water_corner_br",
-      "water_river_ending_l"
+      "river_ending_l"
     ]
   },
   water_corner_bc: {
     up: [
       "water",
       "water_corner_tc",
-      "water_river_entrance_u",
+      "river_entrance_u",
       "water_dirtcorner_tr",
       "water_dirtcorner_tl"
     ],
@@ -426,12 +423,12 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_tr",
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "water_corner_bl"
@@ -452,12 +449,12 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_tr",
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "water_corner_bc",
@@ -470,14 +467,14 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d"
     ]
   },
-  water_river_tl: {
+  river_tl: {
     up: [
       "grass",
       "grass1",
@@ -485,19 +482,19 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_d",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
-      "water_river_bl",
-      "water_river_br",
-      "water_river_d",
-      "water_river_entrance_u",
-      "water_river_ending_d"
+      "river_bl",
+      "river_br",
+      "river_d",
+      "river_entrance_u",
+      "river_ending_d"
     ],
     left: [
       "grass",
@@ -506,22 +503,22 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
-      "water_river_tr",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_entrance_l",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_rl",
+      "river_entrance_l",
+      "river_ending_r"
     ]
   },
-  water_river_tr: {
+  river_tr: {
     up: [
       "grass",
       "grass1",
@@ -529,26 +526,26 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_d",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
-      "water_river_bl",
-      "water_river_br",
-      "water_river_d",
-      "water_river_entrance_u",
-      "water_river_ending_d"
+      "river_bl",
+      "river_br",
+      "river_d",
+      "river_entrance_u",
+      "river_ending_d"
     ],
     left: [
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_rl",
-      "water_river_entrance_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_bl",
+      "river_rl",
+      "river_entrance_r",
+      "river_ending_l"
     ],
     right: [
       "grass",
@@ -557,19 +554,19 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d"
     ]
   },
-  water_river_bl: {
+  river_bl: {
     up: [
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_d",
-      "water_river_entrance_d"
+      "river_tl",
+      "river_tr",
+      "river_d",
+      "river_entrance_d"
     ],
     down: [
       "grass",
@@ -578,12 +575,12 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_tr",
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "grass",
@@ -592,27 +589,27 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d",
+      "river_ending_r"
     ],
     right: [
-      "water_river_tr",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_entrance_l",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_rl",
+      "river_entrance_l",
+      "river_ending_r"
     ]
   },
-  water_river_br: {
+  river_br: {
     up: [
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_d",
-      "water_river_entrance_d"
+      "river_tl",
+      "river_tr",
+      "river_d",
+      "river_entrance_d"
     ],
     down: [
       "grass",
@@ -621,18 +618,18 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_tr",
+      "river_rl",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_rl",
-      "water_river_entrance_r"
+      "river_tl",
+      "river_bl",
+      "river_rl",
+      "river_entrance_r"
     ],
     right: [
       "grass",
@@ -641,27 +638,27 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_u",
+      "river_ending_d"
     ]
   },
-  water_river_entrance_d: {
+  river_entrance_d: {
     up: [
       "water",
       "water_corner_tc",
-      "water_river_entrance_u",
+      "river_entrance_u",
       "water_dirtcorner_tr",
       "water_dirtcorner_tl"
     ],
     down: [
-      "water_river_bl",
-      "water_river_br",
-      "water_river_d",
-      "water_river_entrance_u",
-      "water_river_ending_d"
+      "river_bl",
+      "river_br",
+      "river_d",
+      "river_entrance_u",
+      "river_ending_d"
     ],
     left: [
       "water_dirtcorner_br"
@@ -670,42 +667,55 @@ export const EDGES = {
       "water_dirtcorner_bl"
     ]
   },
-  water_river_entrance_u: {
+  river_entrance_u: {
     up: [
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_d",
-      "water_river_entrance_d",
-      "water_river_ending_u"
+      "river_tl",
+      "river_tr",
+      "river_d",
+      "river_entrance_d",
+      "river_ending_u"
     ],
     down: [
       "water",
       "water_corner_bc",
-      "water_river_entrance_d",
+      "river_entrance_d",
       "water_dirtcorner_br",
       "water_dirtcorner_bl"
     ],
     left: [
-      "water_dirtcorner_tr"
-    ],
-    right: [
-      "water_dirtcorner_tl"
-    ]
+  "water_dirtcorner_tr",
+  "water_corner_tc",
+  "water_corner_bc",
+  "water",
+  "grass",
+  "grass1",
+  "grass2"
+],
+right: [
+  "water_dirtcorner_tl",
+  "water_corner_tc",
+  "water_corner_bc",
+  "water",
+  "grass",
+  "grass1",
+  "grass2"
+]
+
   },
-  water_river_d: {
+  river_d: {
     up: [
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_d",
-      "water_river_entrance_d",
-      "water_river_ending_u"
+      "river_tl",
+      "river_tr",
+      "river_d",
+      "river_entrance_d",
+      "river_ending_u"
     ],
     down: [
-      "water_river_bl",
-      "water_river_br",
-      "water_river_d",
-      "water_river_entrance_u",
-      "water_river_ending_d"
+      "river_bl",
+      "river_br",
+      "river_d",
+      "river_entrance_u",
+      "river_ending_d"
     ],
     left: [
       "grass",
@@ -714,12 +724,10 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_br",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_ending_u",
+      "river_ending_d"
     ],
     right: [
       "grass",
@@ -728,15 +736,13 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_u",
-      "water_river_ending_d",
-      "water_river_ending_l"
+      "river_tl",
+      "river_bl",
+      "river_ending_u",
+      "river_ending_d"
     ]
   },
-  water_river_rl: {
+  river_rl: {
     up: [
       "grass",
       "grass1",
@@ -744,12 +750,11 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_bl",
+      "river_br",
+      "river_ending_d",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
       "grass",
@@ -758,27 +763,26 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_tr",
+      "river_ending_u",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_entrance_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_bl",
+      "river_entrance_r",
+      "river_ending_l"
     ],
     right: [
-      "water_river_tr",
-      "water_river_br",
-      "water_river_entrance_l",
-      "water_river_ending_r"
+      "river_tr",
+      "river_br",
+      "river_entrance_l",
+      "river_ending_r"
     ]
   },
-  water_river_entrance_r: {
+  river_entrance_r: {
     up: [
       "water_dirtcorner_br"
     ],
@@ -788,18 +792,18 @@ export const EDGES = {
     left: [
       "water",
       "water_corner_cl",
-      "water_river_entrance_l",
+      "river_entrance_l",
       "water_dirtcorner_tl",
       "water_dirtcorner_bl"
     ],
     right: [
-      "water_river_entrance_l",
-      "water_river_rl",
-      "water_river_tr",
-      "water_river_br"
+      "river_entrance_l",
+      "river_rl",
+      "river_tr",
+      "river_br"
     ]
   },
-  water_river_entrance_l: {
+  river_entrance_l: {
     up: [
       "water_dirtcorner_bl"
     ],
@@ -807,15 +811,15 @@ export const EDGES = {
       "water_dirtcorner_tl"
     ],
     left: [
-      "water_river_entrance_r",
-      "water_river_rl",
-      "water_river_tl",
-      "water_river_bl"
+      "river_entrance_r",
+      "river_rl",
+      "river_tl",
+      "river_bl"
     ],
     right: [
       "water",
       "water_corner_cr",
-      "water_river_entrance_r",
+      "river_entrance_r",
       "water_dirtcorner_tr",
       "water_dirtcorner_br"
     ]
@@ -823,23 +827,23 @@ export const EDGES = {
   water_dirtcorner_tl: {
     up: [
       "water_dirtcorner_bl",
-      "water_river_entrance_l"
+      "river_entrance_l"
     ],
     down: [
       "water",
       "water_corner_bc",
-      "water_river_entrance_d",
+      "river_entrance_d",
       "water_dirtcorner_br",
       "water_dirtcorner_bl"
     ],
     left: [
       "water_dirtcorner_tr",
-      "water_river_entrance_u"
+      "river_entrance_u"
     ],
     right: [
       "water",
       "water_corner_cr",
-      "water_river_entrance_r",
+      "river_entrance_r",
       "water_dirtcorner_tr",
       "water_dirtcorner_br"
     ]
@@ -847,47 +851,47 @@ export const EDGES = {
   water_dirtcorner_tr: {
     up: [
       "water_dirtcorner_br",
-      "water_river_entrance_r"
+      "river_entrance_r"
     ],
     down: [
       "water",
       "water_corner_bc",
-      "water_river_entrance_d",
+      "river_entrance_d",
       "water_dirtcorner_br",
       "water_dirtcorner_bl"
     ],
     left: [
       "water",
       "water_corner_cl",
-      "water_river_entrance_l",
+      "river_entrance_l",
       "water_dirtcorner_tl",
       "water_dirtcorner_bl"
     ],
     right: [
       "water_dirtcorner_tl",
-      "water_river_entrance_u"
+      "river_entrance_u"
     ]
   },
   water_dirtcorner_bl: {
     up: [
       "water",
       "water_corner_tc",
-      "water_river_entrance_u",
+      "river_entrance_u",
       "water_dirtcorner_tr",
       "water_dirtcorner_tl"
     ],
     down: [
       "water_dirtcorner_tl",
-      "water_river_entrance_l"
+      "river_entrance_l"
     ],
     left: [
       "water_dirtcorner_br",
-      "water_river_entrance_d"
+      "river_entrance_d"
     ],
     right: [
       "water",
       "water_corner_cr",
-      "water_river_entrance_r",
+      "river_entrance_r",
       "water_dirtcorner_tr",
       "water_dirtcorner_br"
     ]
@@ -896,27 +900,27 @@ export const EDGES = {
     up: [
       "water",
       "water_corner_tc",
-      "water_river_entrance_u",
+      "river_entrance_u",
       "water_dirtcorner_tr",
       "water_dirtcorner_tl"
     ],
     down: [
       "water_dirtcorner_tr",
-      "water_river_entrance_r"
+      "river_entrance_r"
     ],
     left: [
       "water",
       "water_corner_cl",
-      "water_river_entrance_l",
+      "river_entrance_l",
       "water_dirtcorner_tl",
       "water_dirtcorner_bl"
     ],
     right: [
       "water_dirtcorner_bl",
-      "water_river_entrance_d"
+      "river_entrance_d"
     ]
   },
-  water_river_ending_u: {
+  river_ending_u: {
     up: [
       "grass",
       "grass1",
@@ -924,15 +928,15 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_r",
+      "river_ending_l"
     ],
     down: [
-      "water_river_d",
-      "water_river_entrance_u"
+      "river_d",
+      "river_entrance_u"
     ],
     left: [
       "grass",
@@ -941,10 +945,10 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_ending_r",
-      "water_river_br",
-      "water_river_d"
+      "river_tr",
+      "river_ending_r",
+      "river_br",
+      "river_d"
     ],
     right: [
       "grass",
@@ -953,18 +957,17 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_ending_l",
-      "water_river_bl",
-      "water_river_d"
+      "river_tl",
+      "river_bl",
+      "river_d"
     ]
   },
-  water_river_ending_d: {
+  river_ending_d: {
     up: [
-      "water_river_d",
-      "water_river_entrance_d",
-      "water_river_tr",
-      "water_river_tl"
+      "river_d",
+      "river_entrance_d",
+      "river_tr",
+      "river_tl"
     ],
     down: [
       "grass",
@@ -973,11 +976,11 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_r",
-      "water_river_ending_l"
+      "river_tl",
+      "river_tr",
+      "river_rl",
+      "river_ending_r",
+      "river_ending_l"
     ],
     left: [
       "grass",
@@ -986,10 +989,10 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_tr",
-      "water_river_ending_r",
-      "water_river_br",
-      "water_river_d"
+      "river_tr",
+      "river_ending_r",
+      "river_br",
+      "river_d"
     ],
     right: [
       "grass",
@@ -998,13 +1001,12 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_ending_l",
-      "water_river_bl",
-      "water_river_d"
+      "river_tl",
+      "river_bl",
+      "river_d"
     ]
   },
-  water_river_ending_r: {
+  river_ending_r: {
     up: [
       "grass",
       "grass1",
@@ -1012,10 +1014,10 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d"
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_d"
     ],
     down: [
       "grass",
@@ -1024,15 +1026,15 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tl",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u",
+      "river_tl",
+      "river_tr",
+      "river_rl",
+      "river_ending_u",
     ],
     left: [
-      "water_river_rl",
-      "water_river_bl",
-      "water_river_tl"
+      "river_rl",
+      "river_bl",
+      "river_tl"
     ],
     right: [
       "grass",
@@ -1041,14 +1043,14 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_cl",
       "water_corner_bl",
-      "water_river_tl",
-      "water_river_bl",
-      "water_river_d",
-      "water_river_ending_d",
-      "water_river_ending_u"
+      "river_tl",
+      "river_bl",
+      "river_d",
+      "river_ending_d",
+      "river_ending_u"
     ]
   },
-  water_river_ending_l: {
+  river_ending_l: {
     up: [
       "grass",
       "grass1",
@@ -1056,10 +1058,10 @@ export const EDGES = {
       "water_corner_bl",
       "water_corner_bc",
       "water_corner_br",
-      "water_river_bl",
-      "water_river_br",
-      "water_river_rl",
-      "water_river_ending_d"
+      "river_bl",
+      "river_br",
+      "river_rl",
+      "river_ending_d"
     ],
     down: [
       "grass",
@@ -1068,13 +1070,13 @@ export const EDGES = {
       "water_corner_tl",
       "water_corner_tc",
       "water_corner_tr",
-      "water_river_tr",
-      "water_river_rl",
-      "water_river_ending_u"
+      "river_tr",
+      "river_rl",
+      "river_ending_u"
     ],
     right: [
-      "water_river_rl",
-      "water_river_tr"
+      "river_rl",
+      "river_tr"
     ],
     left: [
       "grass",
@@ -1083,9 +1085,7 @@ export const EDGES = {
       "water_corner_tr",
       "water_corner_cr",
       "water_corner_br",
-      "water_river_d",
-      "water_river_ending_d",
-      "water_river_ending_u"
+      "river_d"
     ]
   }
 };
