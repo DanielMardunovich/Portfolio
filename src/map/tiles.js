@@ -50,3 +50,24 @@ export const TILES = [
   { id: "river_connectsgrass_brl", sx: 5, sy: 1, weight: 0.05 },
 
 ];
+
+export const WALK_ARROW_TILES = 
+[
+  { id: "arrow_helper_ud", sx: 4, sy: 3},
+  { id: "arrow_helper_lr", sx: 6, sy: 2},
+  { id: "arrow_helper_dr", sx: 5, sy: 4},
+  { id: "arrow_helper_ld", sx: 6, sy: 4},
+  { id: "arrow_helper_ul", sx: 6, sy: 3},
+  { id: "arrow_helper_ur", sx: 5, sy: 3},
+  
+  { id: "arrow_up", sx: 4, sy: 2},
+  { id: "arrow_down", sx: 4, sy: 4},
+  { id: "arrow_left", sx: 5, sy: 2},
+  { id: "arrow_right", sx: 7, sy: 2},
+];
+
+export const MOUSE_TILES = 
+[
+  { id: "mousecursor", sx: 16, sy: 10},
+  { id: "tilesquare", sx: 7, sy: 3}
+];

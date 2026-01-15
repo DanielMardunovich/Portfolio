@@ -14,12 +14,17 @@ const DIRECTIONS = {
   right: [1, 0],
 };
 
-const OPPOSITE = {
-  up: "down",
-  down: "up",
-  left: "right",
-  right: "left",
-};
+const IS_RIVER = id => typeof id === "string" && id.startsWith("river");
+const IS_WATER = id => typeof id === "string" && id.startsWith("water");
+
+
+// River tiles that END (only 1 connection)
+const RIVER_ENDINGS = new Set([
+  "river_connectsgrass_tbl",
+  "river_connectsgrass_tbr",
+  "river_connectsgrass_trl",
+  "river_connectsgrass_brl",
+]);
 
 // -------------------------
 // Grid + Cell
@@ -38,7 +43,7 @@ function createGrid(width, height) {
 }
 
 // -------------------------
-// Entropy (NO jitter)
+// Entropy
 // -------------------------
 function entropy(cell) {
   if (cell.options.length === 0) return Infinity;
@@ -79,31 +84,20 @@ function weightedRandom(options, x, y, width, height) {
 
   const dx = Math.abs(x - cx) / cx;
   const dy = Math.abs(y - cy) / cy;
-
-  // Radial distance (0 = center, 1 = corners)
   const dist = Math.min(1, Math.hypot(dx, dy));
 
   let total = 0;
   const adjusted = options.map(id => {
     let w = TILE_LOOKUP[id].weight;
 
-    // CENTER: extremely open
     if (dist < 0.35) {
       if (id.startsWith("grass")) w *= 2.8;
       if (id.startsWith("river")) w *= 0.08;
       if (id.startsWith("water")) w *= 0.04;
-    }
-    // MID RING: mostly open
-    else if (dist < 0.6) {
+    } else if (dist < 0.6) {
       if (id.startsWith("grass")) w *= 1.6;
       if (id.startsWith("river")) w *= 0.4;
       if (id.startsWith("water")) w *= 0.3;
-    }
-    // OUTER EDGE: neutral
-    else {
-      if (id.startsWith("grass")) w *= 1.0;
-      if (id.startsWith("river")) w *= 1.0;
-      if (id.startsWith("water")) w *= 1.0;
     }
 
     total += w;
@@ -119,9 +113,41 @@ function weightedRandom(options, x, y, width, height) {
   return adjusted[0].id;
 }
 
+// -------------------------
+// River connectivity gate (WFC-aware)
+// -------------------------
+function hasWaterNeighbor(grid, x, y) {
+  for (const [dx, dy] of Object.values(DIRECTIONS)) {
+    const n = grid[y + dy]?.[x + dx];
+    if (!n) continue;
 
-function collapse(cell, x, y, width, height) {
-  const choice = weightedRandom(cell.options, x, y, width, height);
+    if (n.collapsed) {
+      const id = n.options[0];
+      if (IS_WATER(id) || IS_RIVER(id)) return true;
+    } else {
+      if (n.options.some(o => IS_WATER(o) || IS_RIVER(o))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// -------------------------
+// Collapse
+// -------------------------
+function collapse(cell, x, y, width, height, grid) {
+  let options = cell.options.filter(id => {
+    if (!IS_RIVER(id)) return true;
+    return hasWaterNeighbor(grid, x, y);
+  });
+
+  // Fallback to prevent dead cells
+  if (options.length === 0) {
+    options = cell.options.filter(id => !IS_RIVER(id));
+  }
+
+  const choice = weightedRandom(options, x, y, width, height);
   cell.options = [choice];
   cell.collapsed = true;
 }
@@ -157,32 +183,136 @@ function propagate(grid, startX, startY) {
   }
 }
 
-function forceTile(grid, x, y, tileId) {
-  const cell = grid[y]?.[x];
-  if (!cell) return;
-
-  cell.options = [tileId];
-  cell.collapsed = true;
-  propagate(grid, x, y);
+// -------------------------
+// Post-pass: remove invalid river endings
+// -------------------------
+function hasWaterNeighborRaw(grid, x, y) {
+  for (const [dx, dy] of Object.values(DIRECTIONS)) {
+    const n = grid[y + dy]?.[x + dx];
+    if (!n) continue;
+    if (IS_WATER(n)) return true;
+  }
+  return false;
 }
 
+function pruneInvalidRivers(grid) {
+  const h = grid.length;
+  const w = grid[0].length;
+
+  function riverAt(x, y) {
+    return IS_RIVER(grid[y]?.[x]);
+  }
+
+  function countRiverNeighbors(x, y) {
+    let count = 0;
+    for (const [dx, dy] of Object.values(DIRECTIONS)) {
+      if (riverAt(x + dx, y + dy)) count++;
+    }
+    return count;
+  }
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const id = grid[y][x];
+
+      // ── Vertical river
+      if (id === "river_connectsgrass_tb") {
+        const up = riverAt(x, y - 1);
+        const down = riverAt(x, y + 1);
+
+        // Exactly one continuation → this is an endpoint
+        if ((up && !down) || (!up && down)) {
+          grid[y][x] = up
+            ? "river_connectsgrass_tbr" // end downward
+            : "river_connectsgrass_tbl"; // end upward
+        }
+      }
+
+      // ── Horizontal river
+      if (id === "river_connectsgrass_lr") {
+        const left = riverAt(x - 1, y);
+        const right = riverAt(x + 1, y);
+
+        if ((left && !right) || (!left && right)) {
+          grid[y][x] = left
+            ? "river_connectsgrass_trl" // end right
+            : "river_connectsgrass_brl"; // end left
+        }
+      }
+    }
+  }
+}
+
+function breakRiverLoops(grid) {
+  const h = grid.length;
+  const w = grid[0].length;
+  const visited = Array.from({ length: h }, () =>
+    Array(w).fill(false)
+  );
+
+  function neighbors(x, y) {
+    return Object.values(DIRECTIONS)
+      .map(([dx, dy]) => [x + dx, y + dy])
+      .filter(([nx, ny]) => grid[ny]?.[nx]);
+  }
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (!IS_RIVER(grid[y][x]) || visited[y][x]) continue;
+
+      // Flood fill river component
+      const stack = [[x, y]];
+      const component = [];
+      let touchesWater = false;
+
+      while (stack.length) {
+        const [cx, cy] = stack.pop();
+        if (visited[cy][cx]) continue;
+        visited[cy][cx] = true;
+
+        component.push([cx, cy]);
+
+        for (const [nx, ny] of neighbors(cx, cy)) {
+          const id = grid[ny][nx];
+          if (IS_WATER(id)) touchesWater = true;
+          if (IS_RIVER(id) && !visited[ny][nx]) {
+            stack.push([nx, ny]);
+          }
+        }
+      }
+
+      if (!touchesWater) {
+        for (const [rx, ry] of component) {
+          grid[ry][rx] = "grass_empty";
+        }
+      }
+    }
+  }
+}
+
+
+
+
 // -------------------------
-// Map Generator (FE style)
+// Map Generator
 // -------------------------
 export function generateMap(width, height) {
   const grid = createGrid(width, height);
 
-  // -------- WFC SOLVE --------
   while (true) {
     const target = findLowestEntropyCell(grid);
     if (!target) break;
 
-    collapse(target.cell, target.x, target.y, width, height);
+    collapse(target.cell, target.x, target.y, width, height, grid);
     propagate(grid, target.x, target.y);
   }
 
-  // -------- OUTPUT --------
-  return grid.map(row =>
+  const result = grid.map(row =>
     row.map(cell => cell.options[0] ?? "grass_empty")
   );
+
+  pruneInvalidRivers(result);
+breakRiverLoops(result);
+return result;
+
 }
