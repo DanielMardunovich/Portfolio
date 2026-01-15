@@ -49,6 +49,11 @@ export const TILES = [
   { id: "river_connectsgrass_trl", sx: 5, sy: 0, weight: 0.05 },
   { id: "river_connectsgrass_brl", sx: 5, sy: 1, weight: 0.05 },
 
+  //Bridges
+  { id: "bridge_lr", sx: 4, sy: 7, weight: 0 },
+  { id: "bridge_tb", sx: 4, sy: 9, weight: 0 },
+
+
 ];
 
 export const WALK_ARROW_TILES = 
@@ -59,7 +64,7 @@ export const WALK_ARROW_TILES =
   { id: "arrow_helper_ld", sx: 6, sy: 4},
   { id: "arrow_helper_ul", sx: 6, sy: 3},
   { id: "arrow_helper_ur", sx: 5, sy: 3},
-  
+
   { id: "arrow_up", sx: 4, sy: 2},
   { id: "arrow_down", sx: 4, sy: 4},
   { id: "arrow_left", sx: 5, sy: 2},

@@ -820,6 +820,50 @@ export const EDGES = {
     [
 
     ]
+  },
+  bridge_lr: {
+    up: 
+    [
+      
+    ],
+    down: 
+    [
+
+    ],
+    left: 
+    [
+      "grass_empty",
+      "grass_grass",
+      "grass_flower",
+    ],
+    right: 
+    [
+      "grass_empty",
+      "grass_grass",
+      "grass_flower",
+    ],
+  },
+  bridge_tb: {
+    up: 
+    [
+      "grass_empty",
+      "grass_grass",
+      "grass_flower",
+    ],
+    down: 
+    [
+      "grass_empty",
+      "grass_grass",
+      "grass_flower",
+    ],
+    left: 
+    [
+
+    ],
+    right: 
+    [
+
+    ],
   }
 };
 

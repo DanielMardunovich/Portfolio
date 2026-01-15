@@ -243,6 +243,81 @@ function breakRiverLoops(grid) {
 }
 
 // --------------------------------------------------
+// Post-pass 3: place bridges
+// --------------------------------------------------
+
+function placeBridges(grid) {
+  const h = grid.length;
+  const w = grid[0].length;
+
+  const MAX_BRIDGES = Math.max(2, Math.floor((w * h) / 300));
+  const MIN_DISTANCE = 5; // tiles between bridges
+
+  const bridges = [];
+
+  function isGrass(id) {
+    return typeof id === "string" && id.startsWith("grass");
+  }
+
+  function distance(a, b) {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  }
+
+  function farFromOtherBridges(x, y) {
+    return bridges.every(b => distance(b, { x, y }) >= MIN_DISTANCE);
+  }
+
+  // Collect all valid bridge candidates
+  const candidates = [];
+
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const id = grid[y][x];
+
+      // Vertical crossing
+      if (
+        id === "river_connectsgrass_tb" &&
+        isGrass(grid[y - 1][x]) &&
+        isGrass(grid[y + 1][x])
+      ) {
+        candidates.push({ x, y, type: "tb" });
+      }
+
+      // Horizontal crossing
+      if (
+        id === "river_connectsgrass_lr" &&
+        isGrass(grid[y][x - 1]) &&
+        isGrass(grid[y][x + 1])
+      ) {
+        candidates.push({ x, y, type: "lr" });
+      }
+    }
+  }
+
+  // Prefer center-of-map bridges
+  const cx = w / 2;
+  const cy = h / 2;
+  candidates.sort(
+    (a, b) =>
+      Math.hypot(a.x - cx, a.y - cy) -
+      Math.hypot(b.x - cx, b.y - cy)
+  );
+
+  // Place bridges with spacing + cap
+  for (const c of candidates) {
+    if (bridges.length >= MAX_BRIDGES) break;
+    if (!farFromOtherBridges(c.x, c.y)) continue;
+
+    grid[c.y][c.x] =
+      c.type === "tb" ? "bridge_tb" : "bridge_lr";
+
+    bridges.push({ x: c.x, y: c.y });
+  }
+}
+
+
+
+// --------------------------------------------------
 // Map Generator
 // --------------------------------------------------
 export function generateMap(width, height) {
@@ -262,6 +337,7 @@ export function generateMap(width, height) {
 
   pruneInvalidRivers(result);
   breakRiverLoops(result);
+  placeBridges(result);
 
   return result;
 }
