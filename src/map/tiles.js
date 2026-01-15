@@ -73,6 +73,6 @@ export const WALK_ARROW_TILES =
 
 export const MOUSE_TILES = 
 [
-  { id: "mousecursor", sx: 16, sy: 10},
-  { id: "tilesquare", sx: 7, sy: 3}
+  { id: "mousecursor", sx: 7, sy: 3},
+  { id: "tilesquare", sx: 7, sy: 1}
 ];
