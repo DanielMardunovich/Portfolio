@@ -2,8 +2,8 @@ export const TILE_SIZE = 16;
 
 export const TILES = [
   //Full grass tiles
-  { id: "grass_empty", sx: 0, sy: 0, weight: 6 },
-  { id: "grass_grass", sx: 1, sy: 0, weight: 6 },
+  { id: "grass_empty", sx: 0, sy: 0, weight: 75 },
+  { id: "grass_grass", sx: 1, sy: 0, weight: 50 },
   { id: "grass_flower", sx: 2, sy: 0, weight: 6 },
 
   // Water Tiles L

@@ -1,6 +1,7 @@
 import { TILES } from "./tiles";
 import { EDGES } from "./edges";
 
+
 const TILE_LOOKUP = Object.fromEntries(
   TILES.map(t => [t.id, t])
 );
