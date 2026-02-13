@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGame } from "../game/GameContext";
 import { PHASES, TURN } from "../game/phases";
 import { createUnit, FACTION, UNIT_SPRITES } from "../game/units";
 import { generateMap } from "./wfc/wfc";
 import { generateValidatedMap } from "./pathValidation";
+import UnitMenu from "../ui/UnitMenu";
 
 import { MAP_WIDTH, MAP_HEIGHT, getViewSize, getCenteredCamera } from "./battleConfig";
 import { getMovementTiles } from "./battleMovement";
@@ -42,6 +43,9 @@ export default function BattleMap() {
   const cursorRef = useRef({ x: 0, y: 0 });
   const selectedUnitRef = useRef(null);
   const imagesLoadedRef = useRef(false);
+
+  const [menuUnit, setMenuUnit] = useState(null);
+  const [menuPosition, setMenuPosition] = useState(null);
 
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
@@ -141,7 +145,8 @@ export default function BattleMap() {
       cursorRef,
       selectedUnitRef,
       friendlyUnits,
-      redraw
+      redraw,
+      onUnitClick: handleUnitClick
     });
   }, [friendlyUnits]);
 
@@ -162,8 +167,78 @@ useEffect(() => {
   return () => window.removeEventListener("resize", onResize);
 }, []);
 
+  const handleMenuSelect = (action, unit) => {
+    console.log(`${action} selected for unit`, unit.id);
+    // TODO: Implement action handlers
+    switch(action) {
+      case "move":
+        // Show movement range
+        break;
+      case "attack":
+        // Show attack range
+        break;
+      case "info":
+        // Show unit info panel
+        break;
+      default:
+        break;
+    }
+  };
 
-  
+  const handleUnitClick = (unit, screenX, screenY) => {
+    if (unit && unit.faction === FACTION.FRIENDLY && phase === PHASES.MAP_IDLE) {
+      // Calculate menu dimensions (approximate)
+      const menuWidth = 180;
+      const menuHeight = 240;
+      const padding = 10;
+      
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Start with position to the right of click
+      let x = screenX + padding;
+      let y = screenY;
+      
+      // Check if menu would go off right edge
+      if (x + menuWidth > viewportWidth) {
+        x = screenX - menuWidth - padding; // Show on left instead
+      }
+      
+      // Check if menu would go off bottom edge
+      if (y + menuHeight > viewportHeight) {
+        y = viewportHeight - menuHeight - padding; // Push up to fit
+      }
+      
+      // Check if menu would go off top edge
+      if (y < padding) {
+        y = padding;
+      }
+      
+      // Check if menu would go off left edge
+      if (x < padding) {
+        x = padding;
+      }
+      
+      setMenuUnit(unit);
+      setMenuPosition({ x, y });
+      selectedUnitRef.current = unit;
+      redraw();
+    }
+  };
 
-  return <canvas ref={canvasRef} className={`battle-map ${phase}`} />;
+  return (
+    <>
+      <canvas ref={canvasRef} className={`battle-map ${phase}`} />
+      <UnitMenu 
+        unit={menuUnit}
+        position={menuPosition}
+        onSelect={handleMenuSelect}
+        onClose={() => {
+          setMenuUnit(null);
+          setMenuPosition(null);
+        }}
+      />
+    </>
+  );
 }
