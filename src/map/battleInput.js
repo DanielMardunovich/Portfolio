@@ -20,6 +20,7 @@ export function attachBattleInput({
   cursorRef,
   selectedUnitRef,
   friendlyUnits,
+  enemyUnits,
   redraw,
   onUnitClick
 }) {
@@ -30,7 +31,9 @@ export function attachBattleInput({
 
   const onClick = e => {
     const tile = screenToTile(e, canvas, cameraRef.current);
-    const unit = friendlyUnits.find(u => u.x === tile.x && u.y === tile.y);
+    const friendlyUnit = friendlyUnits.find(u => u.x === tile.x && u.y === tile.y);
+    const enemyUnit = enemyUnits.find(u => u.x === tile.x && u.y === tile.y);
+    const unit = friendlyUnit || enemyUnit;
     
     if (unit && onUnitClick) {
       onUnitClick(unit, e.clientX, e.clientY);
@@ -46,7 +49,9 @@ export function attachBattleInput({
     if (e.touches.length > 0) {
       const touch = e.touches[0];
       const tile = screenToTile(touch, canvas, cameraRef.current);
-      const unit = friendlyUnits.find(u => u.x === tile.x && u.y === tile.y);
+      const friendlyUnit = friendlyUnits.find(u => u.x === tile.x && u.y === tile.y);
+      const enemyUnit = enemyUnits.find(u => u.x === tile.x && u.y === tile.y);
+      const unit = friendlyUnit || enemyUnit;
       
       cursorRef.current = tile;
       

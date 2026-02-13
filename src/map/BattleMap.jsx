@@ -145,10 +145,11 @@ export default function BattleMap() {
       cursorRef,
       selectedUnitRef,
       friendlyUnits,
+      enemyUnits,
       redraw,
       onUnitClick: handleUnitClick
     });
-  }, [friendlyUnits]);
+  }, [friendlyUnits, enemyUnits]);
 
   useEffect(() => {
     redraw();
@@ -186,10 +187,10 @@ useEffect(() => {
   };
 
   const handleUnitClick = (unit, screenX, screenY) => {
-    if (unit && unit.faction === FACTION.FRIENDLY && phase === PHASES.MAP_IDLE) {
+    if (unit && phase === PHASES.MAP_IDLE) {
       // Calculate menu dimensions (approximate)
       const menuWidth = 180;
-      const menuHeight = 240;
+      const menuHeight = unit.faction === FACTION.ENEMY ? 180 : 240; // Enemy menu is shorter
       const padding = 10;
       
       // Get viewport dimensions

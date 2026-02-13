@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { FACTION } from "../game/units";
 import "../styles/unitMenu.css";
 
 export default function UnitMenu({ unit, position, onSelect, onClose }) {
@@ -33,6 +34,8 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
     onClose();
   };
 
+  const isEnemy = unit.faction === FACTION.ENEMY;
+
   return (
     <div
       ref={menuRef}
@@ -50,31 +53,55 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
         <div className="unit-menu-divider"></div>
       </div>
       
-      <button 
-        className="unit-menu-option"
-        onClick={() => handleAction("move")}
-        disabled={unit.hasActed}
-      >
-        <span className="menu-icon">→</span>
-        <span>Move</span>
-      </button>
-      
-      <button 
-        className="unit-menu-option"
-        onClick={() => handleAction("attack")}
-        disabled={unit.hasActed}
-      >
-        <span className="menu-icon">⚔</span>
-        <span>Attack</span>
-      </button>
-      
-      <button 
-        className="unit-menu-option"
-        onClick={() => handleAction("info")}
-      >
-        <span className="menu-icon">ⓘ</span>
-        <span>Info</span>
-      </button>
+      {isEnemy ? (
+        // Enemy unit options
+        <>
+          <button 
+            className="unit-menu-option"
+            onClick={() => handleAction("link")}
+          >
+            <span className="menu-icon">⛓</span>
+            <span>Link</span>
+          </button>
+          
+          <button 
+            className="unit-menu-option"
+            onClick={() => handleAction("info")}
+          >
+            <span className="menu-icon">ⓘ</span>
+            <span>Info</span>
+          </button>
+        </>
+      ) : (
+        // Friendly unit options
+        <>
+          <button 
+            className="unit-menu-option"
+            onClick={() => handleAction("move")}
+            disabled={unit.hasActed}
+          >
+            <span className="menu-icon">→</span>
+            <span>Move</span>
+          </button>
+          
+          <button 
+            className="unit-menu-option"
+            onClick={() => handleAction("attack")}
+            disabled={unit.hasActed}
+          >
+            <span className="menu-icon">⚔</span>
+            <span>Attack</span>
+          </button>
+          
+          <button 
+            className="unit-menu-option"
+            onClick={() => handleAction("info")}
+          >
+            <span className="menu-icon">ⓘ</span>
+            <span>Info</span>
+          </button>
+        </>
+      )}
       
       <button 
         className="unit-menu-option unit-menu-cancel"
