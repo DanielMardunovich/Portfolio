@@ -20,11 +20,11 @@ export const SPAWN_AREAS = {
 };
 
 /**
- * Check if a tile is walkable/spawnable
+ * Check if a tile is spawnable
  */
-function isTileWalkable(tileId) {
+function isTileSpawnable(tileId) {
   const tile = TILES.find(t => t.id === tileId);
-  return tile?.walkable ?? false;
+  return tile?.spawnable ?? false;
 }
 
 /**
@@ -58,8 +58,8 @@ export function getSpawnPosition(area, existingUnits = [], map = null, maxAttemp
     // Check if position is occupied by another unit
     if (isPositionOccupied(pos.x, pos.y, existingUnits)) continue;
     
-    // Check if tile is walkable (if map is provided)
-    if (map && !isTileWalkable(map[pos.y]?.[pos.x])) continue;
+    // Check if tile is spawnable (if map is provided)
+    if (map && !isTileSpawnable(map[pos.y]?.[pos.x])) continue;
     
     return pos;
   }

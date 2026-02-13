@@ -3,18 +3,17 @@ import { TILES } from "./wfc/tiles";
 /**
  * Check if there's a walkable path from top to bottom of the map
  * Uses BFS to find any path from top spawn area to bottom spawn area
+ * All tiles are walkable now, just with different costs
  */
 export function hasPathTopToBottom(map) {
   const height = map.length;
   const width = map[0].length;
   
-  // Find walkable tiles in top area (enemy spawn)
+  // Find tiles in top area (enemy spawn) - check any tile since all are walkable
   const startTiles = [];
   for (let y = 3; y <= 6; y++) {
     for (let x = 10; x <= 20; x++) {
-      if (isTileWalkable(map[y][x])) {
-        startTiles.push({ x, y });
-      }
+      startTiles.push({ x, y });
     }
   }
   
@@ -50,10 +49,9 @@ export function hasPathTopToBottom(map) {
       const key = `${next.x},${next.y}`;
       if (visited.has(key)) continue;
       
-      if (isTileWalkable(map[next.y][next.x])) {
-        visited.add(key);
-        queue.push(next);
-      }
+      // All tiles are walkable now
+      visited.add(key);
+      queue.push(next);
     }
   }
   
@@ -61,11 +59,19 @@ export function hasPathTopToBottom(map) {
 }
 
 /**
- * Check if a tile is walkable
+ * Get walk cost for a tile
  */
-function isTileWalkable(tileId) {
+export function getTileWalkCost(tileId) {
   const tile = TILES.find(t => t.id === tileId);
-  return tile?.walkable ?? false;
+  return tile?.walkCost ?? 1;
+}
+
+/**
+ * Check if a tile is spawnable
+ */
+function isTileSpawnable(tileId) {
+  const tile = TILES.find(t => t.id === tileId);
+  return tile?.spawnable ?? false;
 }
 
 /**
