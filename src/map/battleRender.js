@@ -18,7 +18,11 @@ export function drawGrid(ctx, w, h) {
   ctx.restore();
 }
 
-export function drawMap(ctx, map, tileset, cam, view, mapW, mapH) {
+export function drawMap(ctx, map, tileset, cam, view, mapW, mapH, revealTimeMs = null, revealConfig = null) {
+  const stagger = revealConfig?.staggerMs ?? 14;
+  const dropDuration = revealConfig?.dropDurationMs ?? 260;
+  const startYOffset = revealConfig?.startYOffset ?? -TILE_SIZE * 2;
+
   for (let y = 0; y < view.tilesY; y++) {
     for (let x = 0; x < view.tilesX; x++) {
       const mx = cam.x + x;
@@ -28,6 +32,21 @@ export function drawMap(ctx, map, tileset, cam, view, mapW, mapH) {
       const tile = TILES.find(t => t.id === map[my][mx]);
       if (!tile) continue;
 
+      let drawY = y * TILE_SIZE;
+      if (revealTimeMs !== null) {
+        const ring = Math.min(my, mapH - 1 - my);
+        const rowIndex = ring * mapW + mx;
+        const delay = rowIndex * stagger;
+        const localTime = revealTimeMs - delay;
+
+        if (localTime < 0) {
+          continue;
+        }
+
+        const t = Math.min(1, localTime / dropDuration);
+        drawY = startYOffset + t * (y * TILE_SIZE - startYOffset);
+      }
+
       ctx.drawImage(
         tileset,
         tile.sx * TILE_SIZE,
@@ -35,7 +54,7 @@ export function drawMap(ctx, map, tileset, cam, view, mapW, mapH) {
         TILE_SIZE,
         TILE_SIZE,
         x * TILE_SIZE,
-        y * TILE_SIZE,
+        drawY,
         TILE_SIZE,
         TILE_SIZE
       );

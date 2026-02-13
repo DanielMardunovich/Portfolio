@@ -46,6 +46,10 @@ export default function BattleMap() {
   const cursorRef = useRef({ x: 0, y: 0 });
   const selectedUnitRef = useRef(null);
   const imagesLoadedRef = useRef(false);
+  const mapRevealStartRef = useRef(0);
+  const mapRevealTimeRef = useRef(0);
+  const mapRevealRafRef = useRef(null);
+  const mapRevealTotalRef = useRef(0);
 
   const [menuUnit, setMenuUnit] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
@@ -86,7 +90,18 @@ export default function BattleMap() {
     const ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-    drawMap(ctx, mapRef.current, tilesetRef.current, cameraRef.current, viewRef.current, MAP_WIDTH, MAP_HEIGHT);
+    const revealTime = phase === PHASES.MAP_INTRO ? mapRevealTimeRef.current : null;
+    drawMap(
+      ctx,
+      mapRef.current,
+      tilesetRef.current,
+      cameraRef.current,
+      viewRef.current,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+      revealTime,
+      { staggerMs: 14, dropDurationMs: 260, startYOffset: -32 }
+    );
     drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
     drawUnits(ctx, enemyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
 
@@ -119,12 +134,47 @@ export default function BattleMap() {
       if (loaded < 2) return;
       imagesLoadedRef.current = true;
       mapRef.current = generateValidatedMap(generateMap, MAP_WIDTH, MAP_HEIGHT);
-      redraw();
-      setTimeout(() => setPhase(PHASES.MAP_IDLE), 300);
+
+      mapRevealStartRef.current = performance.now();
+      mapRevealTimeRef.current = 0;
+      const view = viewRef.current;
+      const staggerMs = 14;
+      const dropDurationMs = 260;
+      const maxRing = Math.floor((view.tilesY - 1) / 2);
+      const maxMx = cameraRef.current.x + view.tilesX - 1;
+      const maxDelay = (maxRing * MAP_WIDTH + maxMx) * staggerMs;
+      mapRevealTotalRef.current = maxDelay + dropDurationMs;
+
+      const animateReveal = (now) => {
+        mapRevealTimeRef.current = now - mapRevealStartRef.current;
+        redraw();
+
+        if (mapRevealTimeRef.current >= mapRevealTotalRef.current) {
+          mapRevealTimeRef.current = mapRevealTotalRef.current;
+          redraw();
+          setPhase(PHASES.MAP_IDLE);
+          mapRevealRafRef.current = null;
+          return;
+        }
+
+        mapRevealRafRef.current = requestAnimationFrame(animateReveal);
+      };
+
+      if (mapRevealRafRef.current) {
+        cancelAnimationFrame(mapRevealRafRef.current);
+      }
+      mapRevealRafRef.current = requestAnimationFrame(animateReveal);
     };
 
     tilesetRef.current.onload = onLoad;
     unitSpriteRef.current.onload = onLoad;
+
+    return () => {
+      if (mapRevealRafRef.current) {
+        cancelAnimationFrame(mapRevealRafRef.current);
+        mapRevealRafRef.current = null;
+      }
+    };
   }, [phase]);
 
   useEffect(() => {
