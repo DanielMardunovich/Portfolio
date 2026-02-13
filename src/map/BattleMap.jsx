@@ -53,6 +53,7 @@ export default function BattleMap() {
   const [movingUnit, setMovingUnit] = useState(null);
   const [reachableTiles, setReachableTiles] = useState([]);
   const [currentPath, setCurrentPath] = useState(null);
+  const enemyTurnHandledRef = useRef(false);
 
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
@@ -198,6 +199,66 @@ export default function BattleMap() {
       selectedUnitRef.current = null;
     }
   }, [phase, turn, friendlyUnits, enemyUnits, moveMode, movingUnit]);
+
+  useEffect(() => {
+    if (phase !== PHASES.MAP_IDLE) return;
+    if (turn !== TURN.ENEMY) {
+      enemyTurnHandledRef.current = false;
+      return;
+    }
+    if (enemyTurnHandledRef.current) return;
+    enemyTurnHandledRef.current = true;
+
+    if (!mapRef.current || friendlyUnits.length === 0 || enemyUnits.length === 0) {
+      setTurn(TURN.PLAYER);
+      setFriendlyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+      setEnemyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+      return;
+    }
+
+    const occupiedPositions = [...friendlyUnits, ...enemyUnits].map(u => ({ x: u.x, y: u.y }));
+    const updatedEnemies = enemyUnits.map(enemy => {
+      if (enemy.hasActed) return enemy;
+
+      const occupied = occupiedPositions.filter(pos => !(pos.x === enemy.x && pos.y === enemy.y));
+
+      const reachable = getReachableTiles(enemy.x, enemy.y, enemy.move, mapRef.current, occupied);
+      if (reachable.length === 0) {
+        return { ...enemy, hasActed: true };
+      }
+
+      let bestTile = null;
+      let bestDistance = Infinity;
+      let bestCost = Infinity;
+
+      for (const tile of reachable) {
+        const minDistanceToFriendly = Math.min(
+          ...friendlyUnits.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
+        );
+
+        if (
+          minDistanceToFriendly < bestDistance ||
+          (minDistanceToFriendly === bestDistance && tile.cost < bestCost)
+        ) {
+          bestDistance = minDistanceToFriendly;
+          bestCost = tile.cost;
+          bestTile = tile;
+        }
+      }
+
+      if (!bestTile) {
+        return { ...enemy, hasActed: true };
+      }
+
+      const newEnemy = { ...enemy, x: bestTile.x, y: bestTile.y, hasActed: true };
+      occupiedPositions.push({ x: newEnemy.x, y: newEnemy.y });
+      return newEnemy;
+    });
+
+    setEnemyUnits(updatedEnemies.map(u => ({ ...u, hasActed: false })));
+    setTurn(TURN.PLAYER);
+    setFriendlyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+  }, [phase, turn, friendlyUnits, enemyUnits]);
 
   // Handle Escape key to cancel move mode
   useEffect(() => {
