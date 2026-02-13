@@ -27,6 +27,7 @@ export default function BattleMap() {
   const {
     phase,
     setPhase,
+    turn,
     setTurn,
     friendlyUnits,
     setFriendlyUnits,
@@ -168,6 +169,35 @@ export default function BattleMap() {
   useEffect(() => {
     redraw();
   }, [friendlyUnits, enemyUnits, moveMode, currentPath]);
+
+  useEffect(() => {
+    if (phase !== PHASES.MAP_IDLE) return;
+    if (turn !== TURN.PLAYER) return;
+    if (moveMode || movingUnit) return;
+    if (!mapRef.current || friendlyUnits.length === 0) return;
+
+    const allFriendlyCannotMove = friendlyUnits.every(unit => {
+      if (unit.hasActed) return true;
+
+      const occupied = [...friendlyUnits, ...enemyUnits]
+        .filter(u => u.id !== unit.id)
+        .map(u => ({ x: u.x, y: u.y }));
+
+      const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
+      return tiles.length === 0;
+    });
+
+    if (allFriendlyCannotMove) {
+      setTurn(TURN.ENEMY);
+      setMenuUnit(null);
+      setMenuPosition(null);
+      setMoveMode(false);
+      setMovingUnit(null);
+      setReachableTiles([]);
+      setCurrentPath(null);
+      selectedUnitRef.current = null;
+    }
+  }, [phase, turn, friendlyUnits, enemyUnits, moveMode, movingUnit]);
 
   // Handle Escape key to cancel move mode
   useEffect(() => {

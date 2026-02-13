@@ -1,0 +1,27 @@
+.turn-indicator {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 10px 14px;
+  font-family: "Press Start 2P", system-ui, sans-serif;
+  font-size: 12px;
+  color: #ffffff;
+  background: rgba(20, 24, 32, 0.85);
+  border: 2px solid #ffffff;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.turn-indicator.player {
+  border-color: #7fffd4;
+  color: #7fffd4;
+}
+
+.turn-indicator.enemy {
+  border-color: #ff8a8a;
+  color: #ff8a8a;
+}
