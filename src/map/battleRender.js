@@ -1,4 +1,4 @@
-import { TILE_SIZE, TILES, MOUSE_TILES } from "./wfc/tiles";
+import { TILE_SIZE, TILES, MOUSE_TILES, WALK_ARROW_TILES } from "./wfc/tiles";
 
 export function drawGrid(ctx, w, h) {
   ctx.save();
@@ -95,3 +95,19 @@ export function drawMovementRange(ctx, tileset, tiles, cam) {
   const sprite = MOUSE_TILES.find(t => t.id === "tilesquare");
   tiles.forEach(t => drawOverlayTile(ctx, tileset, sprite, t.x, t.y, cam));
 }
+
+export function drawPath(ctx, tileset, path, cam, getArrowTileFn) {
+  if (!path || path.length <= 1) return;
+  
+  // Skip first tile (unit's current position) and draw arrows for the rest
+  for (let i = 1; i < path.length; i++) {
+    const arrowId = getArrowTileFn(path, i);
+    if (!arrowId) continue;
+    
+    const sprite = WALK_ARROW_TILES.find(t => t.id === arrowId);
+    if (!sprite) continue;
+    
+    drawOverlayTile(ctx, tileset, sprite, path[i].x, path[i].y, cam);
+  }
+}
+

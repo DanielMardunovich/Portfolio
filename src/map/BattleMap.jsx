@@ -10,13 +10,15 @@ import { MAP_WIDTH, MAP_HEIGHT, getViewSize, getCenteredCamera } from "./battleC
 import { getMovementTiles } from "./battleMovement";
 import { attachBattleInput } from "./battleInput";
 import { SPAWN_AREAS, spawnUnitsInArea } from "./battleSpawn";
+import { findPath, getReachableTiles, getArrowTileForPath } from "./pathfinding";
 import {
   drawMap,
   drawUnits,
   drawCursor,
   drawSelection,
   drawMovementRange,
-  drawGrid
+  drawGrid,
+  drawPath
 } from "./battleRender";
 
 import "../styles/battleMap.css";
@@ -46,6 +48,10 @@ export default function BattleMap() {
 
   const [menuUnit, setMenuUnit] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
+  const [moveMode, setMoveMode] = useState(false);
+  const [movingUnit, setMovingUnit] = useState(null);
+  const [reachableTiles, setReachableTiles] = useState([]);
+  const [currentPath, setCurrentPath] = useState(null);
 
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
@@ -82,10 +88,15 @@ export default function BattleMap() {
     drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
     drawUnits(ctx, enemyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
 
-    if (selectedUnitRef.current) {
-      const tiles = getMovementTiles(selectedUnitRef.current, MAP_WIDTH, MAP_HEIGHT);
-      drawMovementRange(ctx, tilesetRef.current, tiles, cameraRef.current);
-      drawSelection(ctx, tilesetRef.current, selectedUnitRef.current, cameraRef.current);
+    // Only show movement range and selection in move mode
+    if (moveMode && movingUnit) {
+      drawMovementRange(ctx, tilesetRef.current, reachableTiles, cameraRef.current);
+      drawSelection(ctx, tilesetRef.current, movingUnit, cameraRef.current);
+      
+      // Draw path with arrows
+      if (currentPath && currentPath.length > 1) {
+        drawPath(ctx, tilesetRef.current, currentPath, cameraRef.current, getArrowTileForPath);
+      }
     }
 
     drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
@@ -147,13 +158,32 @@ export default function BattleMap() {
       friendlyUnits,
       enemyUnits,
       redraw,
-      onUnitClick: handleUnitClick
+      onUnitClick: handleUnitClick,
+      onTileHover: handleTileHover,
+      onTileClick: handleTileClick,
+      moveMode
     });
-  }, [friendlyUnits, enemyUnits]);
+  }, [friendlyUnits, enemyUnits, moveMode, movingUnit, reachableTiles]);
 
   useEffect(() => {
     redraw();
-  }, [friendlyUnits, enemyUnits]);
+  }, [friendlyUnits, enemyUnits, moveMode, currentPath]);
+
+  // Handle Escape key to cancel move mode
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && moveMode) {
+        setMoveMode(false);
+        setMovingUnit(null);
+        setReachableTiles([]);
+        setCurrentPath(null);
+        selectedUnitRef.current = null;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [moveMode]);
 
 useEffect(() => {
   const onResize = () => {
@@ -170,19 +200,76 @@ useEffect(() => {
 
   const handleMenuSelect = (action, unit) => {
     console.log(`${action} selected for unit`, unit.id);
-    // TODO: Implement action handlers
+    
     switch(action) {
       case "move":
-        // Show movement range
+        // Enter move mode
+        setMoveMode(true);
+        setMovingUnit(unit);
+        
+        // Calculate reachable tiles using A*
+        const occupied = [...friendlyUnits, ...enemyUnits]
+          .filter(u => u.id !== unit.id)
+          .map(u => ({ x: u.x, y: u.y }));
+        
+        const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
+        setReachableTiles(tiles);
+        
+        // Close menu
+        setMenuUnit(null);
+        setMenuPosition(null);
         break;
       case "attack":
         // Show attack range
+        console.log("Attack not yet implemented");
         break;
       case "info":
         // Show unit info panel
+        console.log("Info not yet implemented");
+        break;
+      case "link":
+        // Enemy link action
+        console.log("Link not yet implemented");
         break;
       default:
         break;
+    }
+  };
+
+  const handleTileHover = (tile) => {
+    if (moveMode && movingUnit && mapRef.current) {
+      // Check if tile is reachable
+      const isReachable = reachableTiles.some(t => t.x === tile.x && t.y === tile.y);
+      
+      if (isReachable) {
+        // Calculate path from unit to hovered tile
+        const path = findPath(movingUnit.x, movingUnit.y, tile.x, tile.y, mapRef.current, movingUnit.move);
+        setCurrentPath(path);
+      } else {
+        setCurrentPath(null);
+      }
+    }
+  };
+
+  const handleTileClick = (tile) => {
+    if (moveMode && movingUnit && currentPath && currentPath.length > 1) {
+      // Move unit to destination
+      const destination = currentPath[currentPath.length - 1];
+      
+      setFriendlyUnits(units => 
+        units.map(u => 
+          u.id === movingUnit.id 
+            ? { ...u, x: destination.x, y: destination.y, hasActed: true }
+            : u
+        )
+      );
+      
+      // Exit move mode
+      setMoveMode(false);
+      setMovingUnit(null);
+      setReachableTiles([]);
+      setCurrentPath(null);
+      selectedUnitRef.current = null;
     }
   };
 

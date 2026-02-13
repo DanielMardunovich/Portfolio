@@ -22,10 +22,19 @@ export function attachBattleInput({
   friendlyUnits,
   enemyUnits,
   redraw,
-  onUnitClick
+  onUnitClick,
+  onTileHover,
+  onTileClick,
+  moveMode
 }) {
   const onMove = e => {
-    cursorRef.current = screenToTile(e, canvas, cameraRef.current);
+    const tile = screenToTile(e, canvas, cameraRef.current);
+    cursorRef.current = tile;
+    
+    if (onTileHover) {
+      onTileHover(tile);
+    }
+    
     redraw();
   };
 
@@ -35,6 +44,15 @@ export function attachBattleInput({
     const enemyUnit = enemyUnits.find(u => u.x === tile.x && u.y === tile.y);
     const unit = friendlyUnit || enemyUnit;
     
+    // In move mode, clicking a tile moves the unit
+    if (moveMode && !unit) {
+      if (onTileClick) {
+        onTileClick(tile);
+      }
+      return;
+    }
+    
+    // Otherwise, handle unit clicks
     if (unit && onUnitClick) {
       onUnitClick(unit, e.clientX, e.clientY);
     }
@@ -55,6 +73,15 @@ export function attachBattleInput({
       
       cursorRef.current = tile;
       
+      // In move mode, tapping a tile moves the unit
+      if (moveMode && !unit) {
+        if (onTileClick) {
+          onTileClick(tile);
+        }
+        return;
+      }
+      
+      // Otherwise, handle unit clicks
       if (unit && onUnitClick) {
         onUnitClick(unit, touch.clientX, touch.clientY);
       }
@@ -68,7 +95,13 @@ export function attachBattleInput({
     e.preventDefault();
     if (e.touches.length > 0) {
       const touch = e.touches[0];
-      cursorRef.current = screenToTile(touch, canvas, cameraRef.current);
+      const tile = screenToTile(touch, canvas, cameraRef.current);
+      cursorRef.current = tile;
+      
+      if (onTileHover) {
+        onTileHover(tile);
+      }
+      
       redraw();
     }
   };
