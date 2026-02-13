@@ -3,18 +3,19 @@ import { TILES } from "./wfc/tiles";
 
 // Define spawn areas (rectangular regions)
 // Friendly at bottom, Enemy at top for better mobile view
+// Positioned to ensure visibility on all screen sizes
 export const SPAWN_AREAS = {
   FRIENDLY: {
-    minX: 8,
-    maxX: 22,
-    minY: 15,
-    maxY: 18
+    minX: 10,
+    maxX: 20,
+    minY: 14,
+    maxY: 17
   },
   ENEMY: {
-    minX: 8,
-    maxX: 22,
-    minY: 2,
-    maxY: 5
+    minX: 10,
+    maxX: 20,
+    minY: 3,
+    maxY: 6
   }
 };
 

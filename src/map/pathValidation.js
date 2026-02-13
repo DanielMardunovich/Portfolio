@@ -10,8 +10,8 @@ export function hasPathTopToBottom(map) {
   
   // Find walkable tiles in top area (enemy spawn)
   const startTiles = [];
-  for (let y = 2; y <= 5; y++) {
-    for (let x = 8; x <= 22; x++) {
+  for (let y = 3; y <= 6; y++) {
+    for (let x = 10; x <= 20; x++) {
       if (isTileWalkable(map[y][x])) {
         startTiles.push({ x, y });
       }
@@ -32,7 +32,7 @@ export function hasPathTopToBottom(map) {
     const { x, y } = queue.shift();
     
     // Check if we reached bottom spawn area
-    if (y >= 15 && y <= 18 && x >= 8 && x <= 22) {
+    if (y >= 14 && y <= 17 && x >= 10 && x <= 20) {
       return true;
     }
     

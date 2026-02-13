@@ -5,7 +5,7 @@ import { createUnit, FACTION, UNIT_SPRITES } from "../game/units";
 import { generateMap } from "./wfc/wfc";
 import { generateValidatedMap } from "./pathValidation";
 
-import { MAP_WIDTH, MAP_HEIGHT, getViewSize } from "./battleConfig";
+import { MAP_WIDTH, MAP_HEIGHT, getViewSize, getCenteredCamera } from "./battleConfig";
 import { getMovementTiles } from "./battleMovement";
 import { attachBattleInput } from "./battleInput";
 import { SPAWN_AREAS, spawnUnitsInArea } from "./battleSpawn";
@@ -92,6 +92,7 @@ export default function BattleMap() {
     if (phase !== PHASES.MAP_INTRO) return;
 
     resizeCanvas();
+    cameraRef.current = getCenteredCamera();
     tilesetRef.current.src = "/Portfolio/TileMap/tilemap.png";
     unitSpriteRef.current.src = "/Portfolio/Units/units.png";
 

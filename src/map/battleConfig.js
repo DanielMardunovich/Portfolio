@@ -12,3 +12,11 @@ export function getViewSize() {
     tilesY: Math.min(tilesY, MAP_HEIGHT)
   };
 }
+
+export function getCenteredCamera() {
+  const view = getViewSize();
+  return {
+    x: Math.max(0, Math.floor((MAP_WIDTH - view.tilesX) / 2)),
+    y: Math.max(0, Math.floor((MAP_HEIGHT - view.tilesY) / 2))
+  };
+}
