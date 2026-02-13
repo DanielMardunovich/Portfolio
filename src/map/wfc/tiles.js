@@ -60,9 +60,9 @@ export const WALK_ARROW_TILES =
 [
   { id: "arrow_helper_ud", sx: 4, sy: 3},
   { id: "arrow_helper_lr", sx: 6, sy: 2},
-  { id: "arrow_helper_ur", sx: 5, sy: 3},
+  { id: "arrow_helper_ld", sx: 5, sy: 3},
   { id: "arrow_helper_ul", sx: 6, sy: 3},
-  { id: "arrow_helper_ld", sx: 6, sy: 4},
+  { id: "arrow_helper_ur", sx: 6, sy: 4},
   { id: "arrow_helper_dr", sx: 5, sy: 4},
 
   { id: "arrow_up", sx: 4, sy: 2},

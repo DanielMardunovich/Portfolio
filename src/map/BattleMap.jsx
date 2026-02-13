@@ -252,24 +252,49 @@ useEffect(() => {
   };
 
   const handleTileClick = (tile) => {
-    if (moveMode && movingUnit && currentPath && currentPath.length > 1) {
-      // Move unit to destination
-      const destination = currentPath[currentPath.length - 1];
-      
-      setFriendlyUnits(units => 
-        units.map(u => 
-          u.id === movingUnit.id 
-            ? { ...u, x: destination.x, y: destination.y, hasActed: true }
-            : u
-        )
-      );
-      
-      // Exit move mode
-      setMoveMode(false);
-      setMovingUnit(null);
-      setReachableTiles([]);
-      setCurrentPath(null);
-      selectedUnitRef.current = null;
+    if (moveMode && movingUnit) {
+      // Check if clicked tile is reachable
+      const isReachable = reachableTiles.some(t => t.x === tile.x && t.y === tile.y);
+
+      if (isReachable) {
+        const path = findPath(
+          movingUnit.x,
+          movingUnit.y,
+          tile.x,
+          tile.y,
+          mapRef.current,
+          movingUnit.move
+        );
+
+        if (!path || path.length <= 1) {
+          return;
+        }
+
+        // Move unit to destination
+        const destination = path[path.length - 1];
+        
+        setFriendlyUnits(units => 
+          units.map(u => 
+            u.id === movingUnit.id 
+              ? { ...u, x: destination.x, y: destination.y, hasActed: true }
+              : u
+          )
+        );
+        
+        // Exit move mode
+        setMoveMode(false);
+        setMovingUnit(null);
+        setReachableTiles([]);
+        setCurrentPath(null);
+        selectedUnitRef.current = null;
+      } else {
+        // Clicked outside reachable area - cancel move mode
+        setMoveMode(false);
+        setMovingUnit(null);
+        setReachableTiles([]);
+        setCurrentPath(null);
+        selectedUnitRef.current = null;
+      }
     }
   };
 
