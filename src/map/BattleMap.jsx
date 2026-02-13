@@ -5,6 +5,7 @@ import { createUnit, FACTION, UNIT_SPRITES } from "../game/units";
 import { generateMap } from "./wfc/wfc";
 import { generateValidatedMap } from "./pathValidation";
 import UnitMenu from "../ui/UnitMenu";
+import InfoPanel from "../ui/InfoPanel";
 
 import { MAP_WIDTH, MAP_HEIGHT, getViewSize, getCenteredCamera } from "./battleConfig";
 import { getMovementTiles } from "./battleMovement";
@@ -57,6 +58,8 @@ export default function BattleMap() {
   const [movingUnit, setMovingUnit] = useState(null);
   const [reachableTiles, setReachableTiles] = useState([]);
   const [currentPath, setCurrentPath] = useState(null);
+  const [infoPanelUnit, setInfoPanelUnit] = useState(null);
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false);
   const enemyTurnHandledRef = useRef(false);
 
   const resizeCanvas = () => {
@@ -366,7 +369,8 @@ useEffect(() => {
         break;
       case "info":
         // Show unit info panel
-        console.log("Info not yet implemented");
+        setInfoPanelUnit(unit);
+        setInfoPanelOpen(true);
         break;
       case "link":
         // Enemy link action
@@ -492,6 +496,11 @@ useEffect(() => {
           setMenuUnit(null);
           setMenuPosition(null);
         }}
+      />
+      <InfoPanel 
+        unit={infoPanelUnit}
+        isOpen={infoPanelOpen}
+        onClose={() => setInfoPanelOpen(false)}
       />
     </>
   );
