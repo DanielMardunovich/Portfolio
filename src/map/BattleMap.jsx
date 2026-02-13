@@ -3,6 +3,7 @@ import { useGame } from "../game/GameContext";
 import { PHASES, TURN } from "../game/phases";
 import { createUnit, FACTION, UNIT_SPRITES } from "../game/units";
 import { generateMap } from "./wfc/wfc";
+import { generateValidatedMap } from "./pathValidation";
 
 import { MAP_WIDTH, MAP_HEIGHT, getViewSize } from "./battleConfig";
 import { getMovementTiles } from "./battleMovement";
@@ -99,7 +100,7 @@ export default function BattleMap() {
       loaded++;
       if (loaded < 2) return;
       imagesLoadedRef.current = true;
-      mapRef.current = generateMap(MAP_WIDTH, MAP_HEIGHT);
+      mapRef.current = generateValidatedMap(generateMap, MAP_WIDTH, MAP_HEIGHT);
       redraw();
       setTimeout(() => setPhase(PHASES.MAP_IDLE), 300);
     };

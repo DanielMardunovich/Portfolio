@@ -12,6 +12,7 @@
   align-items: center;
   z-index: 10;
   cursor: pointer;
+  touch-action: manipulation; /* Allow tap, but prevent double-tap zoom */
 }
 
 .title-name {
@@ -30,4 +31,15 @@
 @keyframes pulse {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
+}
+
+/* Mobile responsive text sizing */
+@media (max-width: 768px) {
+  .title-name {
+    font-size: 2rem;
+  }
+  
+  .continue-text {
+    font-size: 0.9rem;
+  }
 }

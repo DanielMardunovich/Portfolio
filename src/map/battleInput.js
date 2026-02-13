@@ -34,12 +34,38 @@ export function attachBattleInput({
     redraw();
   };
 
+  // Touch support for mobile
+  const onTouchStart = e => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      const tile = screenToTile(touch, canvas, cameraRef.current);
+      cursorRef.current = tile;
+      selectedUnitRef.current =
+        friendlyUnits.find(u => u.x === tile.x && u.y === tile.y) || null;
+      redraw();
+    }
+  };
+
+  const onTouchMove = e => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      cursorRef.current = screenToTile(touch, canvas, cameraRef.current);
+      redraw();
+    }
+  };
+
   canvas.addEventListener("mousemove", onMove);
   canvas.addEventListener("click", onClick);
+  canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+  canvas.addEventListener("touchmove", onTouchMove, { passive: false });
 
   return () => {
     canvas.removeEventListener("mousemove", onMove);
     canvas.removeEventListener("click", onClick);
+    canvas.removeEventListener("touchstart", onTouchStart);
+    canvas.removeEventListener("touchmove", onTouchMove);
   };
 }
 

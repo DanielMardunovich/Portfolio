@@ -2,6 +2,9 @@
   position: fixed;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  touch-action: none; /* Prevent default touch behaviors like scrolling */
+  -webkit-touch-callout: none; /* Prevent long-press menu on iOS */
+  user-select: none; /* Prevent text selection */
 }
 
 
@@ -9,6 +12,7 @@ body {
   margin: 0;
   overflow: hidden;
   background: #2b2f36;
+  touch-action: none; /* Prevent pull-to-refresh and other gestures */
 }
 
 .battle-map.MAP_INTRO,

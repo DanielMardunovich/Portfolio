@@ -2,18 +2,19 @@ import { MAP_WIDTH, MAP_HEIGHT } from "./battleConfig";
 import { TILES } from "./wfc/tiles";
 
 // Define spawn areas (rectangular regions)
+// Friendly at bottom, Enemy at top for better mobile view
 export const SPAWN_AREAS = {
   FRIENDLY: {
-    minX: 2,
-    maxX: 8,
-    minY: 8,
-    maxY: 12
+    minX: 8,
+    maxX: 22,
+    minY: 15,
+    maxY: 18
   },
   ENEMY: {
-    minX: 21,
-    maxX: 27,
-    minY: 8,
-    maxY: 12
+    minX: 8,
+    maxX: 22,
+    minY: 2,
+    maxY: 5
   }
 };
 
