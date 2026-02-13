@@ -7,6 +7,7 @@ import { generateMap } from "./wfc/wfc";
 import { MAP_WIDTH, MAP_HEIGHT, getViewSize } from "./battleConfig";
 import { getMovementTiles } from "./battleMovement";
 import { attachBattleInput } from "./battleInput";
+import { SPAWN_AREAS, spawnUnitsInArea } from "./battleSpawn";
 import {
   drawMap,
   drawUnits,
@@ -111,14 +112,22 @@ export default function BattleMap() {
     if (phase !== PHASES.MAP_IDLE) return;
 
     setTurn(TURN.PLAYER);
-    setFriendlyUnits([
-      createUnit({ id: "p1", faction: FACTION.FRIENDLY, sprite: UNIT_SPRITES.FRIENDLY_SOLDIER, x: 8, y: 10 }),
-      createUnit({ id: "p2", faction: FACTION.FRIENDLY, sprite: UNIT_SPRITES.FRIENDLY_ARCHER, x: 9, y: 10 })
-    ]);
-    setEnemyUnits([
-      createUnit({ id: "e1", faction: FACTION.ENEMY, sprite: UNIT_SPRITES.ENEMY_SOLDIER, x: 20, y: 10 }),
-      createUnit({ id: "e2", faction: FACTION.ENEMY, sprite: UNIT_SPRITES.ENEMY_ARCHER, x: 22, y: 12 })
-    ]);
+    
+    // Spawn friendly units in their area
+    const friendlyConfigs = [
+      createUnit({ id: "p1", faction: FACTION.FRIENDLY, sprite: UNIT_SPRITES.FRIENDLY_SOLDIER, x: 0, y: 0 }),
+      createUnit({ id: "p2", faction: FACTION.FRIENDLY, sprite: UNIT_SPRITES.FRIENDLY_ARCHER, x: 0, y: 0 })
+    ];
+    const spawnedFriendly = spawnUnitsInArea(friendlyConfigs, SPAWN_AREAS.FRIENDLY, mapRef.current);
+    setFriendlyUnits(spawnedFriendly);
+    
+    // Spawn enemy units in their area
+    const enemyConfigs = [
+      createUnit({ id: "e1", faction: FACTION.ENEMY, sprite: UNIT_SPRITES.ENEMY_SOLDIER, x: 0, y: 0 }),
+      createUnit({ id: "e2", faction: FACTION.ENEMY, sprite: UNIT_SPRITES.ENEMY_ARCHER, x: 0, y: 0 })
+    ];
+    const spawnedEnemy = spawnUnitsInArea(enemyConfigs, SPAWN_AREAS.ENEMY, mapRef.current);
+    setEnemyUnits(spawnedEnemy);
   }, [phase]);
 
   useEffect(() => {
