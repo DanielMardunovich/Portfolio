@@ -6,6 +6,8 @@ import { generateMap } from "./wfc/wfc";
 import { generateValidatedMap, getTileWalkCost } from "./pathValidation";
 import UnitMenu from "../ui/UnitMenu";
 import InfoPanel from "../ui/InfoPanel";
+import SpeechBubble from "../ui/SpeechBubble";
+import "../styles/speechBubble.css";
 
 import { MAP_WIDTH, MAP_HEIGHT, getViewSize, getCenteredCamera } from "./battleConfig";
 import { getMovementTiles } from "./battleMovement";
@@ -73,6 +75,9 @@ export default function BattleMap() {
   // InfoPanel state for portfolio project info
   const [infoPanelProject, setInfoPanelProject] = useState(null);
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
+  const [bubbleVisible, setBubbleVisible] = useState(false);
+  const [bubblePos, setBubblePos] = useState(null);
+  const [bubbleUnitId, setBubbleUnitId] = useState(null);
 
   // Example: Define your portfolio projects and contact methods here
   // Friendly units = portfolio projects, enemies = you/contact methods
@@ -147,6 +152,22 @@ export default function BattleMap() {
     }
     
     return { x, y };
+  };
+
+  const tileToClient = (tileX, tileY) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const px = (tileX - cameraRef.current.x + 0.5) * TILE_SIZE;
+    const py = (tileY - cameraRef.current.y + 0.0) * TILE_SIZE;
+
+    const clientX = rect.left + px / scaleX;
+    const clientY = rect.top + py / scaleY;
+
+    return { x: clientX, y: clientY };
   };
 
   const resizeCanvas = () => {
@@ -282,6 +303,16 @@ export default function BattleMap() {
     ];
     const spawnedFriendly = spawnUnitsInArea(friendlyConfigs, SPAWN_AREAS.FRIENDLY, mapRef.current);
     setFriendlyUnits(spawnedFriendly);
+    // Show speech bubble above first friendly unit
+    if (spawnedFriendly.length > 0) {
+      const target = spawnedFriendly[0];
+      const pos = tileToClient(target.x, target.y);
+      if (pos) {
+        setBubbleUnitId(target.id);
+        setBubblePos({ x: pos.x, y: pos.y - 18 });
+        setBubbleVisible(true);
+      }
+    }
     
     // Spawn enemy units in their area
     const enemyConfigs = [
@@ -681,6 +712,11 @@ useEffect(() => {
 
   const handleUnitClick = (unit, screenX, screenY) => {
     if (unit && phase === PHASES.MAP_IDLE) {
+      // If the bubble is visible for this unit, dismiss it permanently
+      if (bubbleVisible && bubbleUnitId && unit.id === bubbleUnitId) {
+        setBubbleVisible(false);
+        setBubbleUnitId(null);
+      }
       const position = calculateMenuPosition(screenX, screenY, unit.faction);
       
       setMenuUnit(unit);
@@ -693,6 +729,16 @@ useEffect(() => {
   return (
     <>
       <canvas ref={canvasRef} className={`battle-map ${phase}`} />
+      <SpeechBubble
+        visible={bubbleVisible}
+        x={bubblePos?.x}
+        y={bubblePos?.y}
+        text={"Click me!"}
+        onDismiss={() => {
+          setBubbleVisible(false);
+          setBubbleUnitId(null);
+        }}
+      />
       <UnitMenu 
         unit={menuUnit}
         position={menuPosition}

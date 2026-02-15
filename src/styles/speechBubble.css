@@ -1,0 +1,22 @@
+.speech-bubble {
+  background: rgba(255,255,255,0.95);
+  color: #111;
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -6px;
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(255,255,255,0.95) transparent transparent transparent;
+}
