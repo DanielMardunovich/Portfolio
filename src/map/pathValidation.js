@@ -85,8 +85,6 @@ export function generateValidatedMap(generateMapFn, width, height, maxAttempts =
     if (hasPathTopToBottom(map)) {
       return map;
     }
-    
-    console.log(`Map attempt ${i + 1} failed path validation, regenerating...`);
   }
   
   // Return last attempt even if invalid (shouldn't happen often with bridges)

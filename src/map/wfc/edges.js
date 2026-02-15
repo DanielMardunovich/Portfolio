@@ -868,4 +868,3 @@ export const EDGES = {
 };
 
 enforceSymmetry(EDGES);
-console.log("Generated EDGES:", EDGES);

@@ -24,6 +24,16 @@ import {
 
 import "../styles/battleMap.css";
 
+// Constants
+const TILE_SIZE = 16;
+const REVEAL_STAGGER_MS = 14;
+const REVEAL_DROP_DURATION_MS = 260;
+const REVEAL_START_Y_OFFSET = -32;
+const MENU_WIDTH = 180;
+const MENU_HEIGHT_FRIENDLY = 240;
+const MENU_HEIGHT_ENEMY = 180;
+const MENU_PADDING = 10;
+
 export default function BattleMap() {
   const {
     phase,
@@ -62,30 +72,65 @@ export default function BattleMap() {
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
   const enemyTurnHandledRef = useRef(false);
 
+  // Helper function to clear move mode state
+  const clearMoveMode = () => {
+    setMoveMode(false);
+    setMovingUnit(null);
+    setReachableTiles([]);
+    setCurrentPath(null);
+    selectedUnitRef.current = null;
+  };
+
+  // Helper function to calculate menu position
+  const calculateMenuPosition = (screenX, screenY, faction) => {
+    const menuWidth = MENU_WIDTH;
+    const menuHeight = faction === FACTION.ENEMY ? MENU_HEIGHT_ENEMY : MENU_HEIGHT_FRIENDLY;
+    const padding = MENU_PADDING;
+    
+    let x = screenX + padding;
+    let y = screenY;
+    
+    // Prevent menu from going off screen edges
+    if (x + menuWidth > window.innerWidth) {
+      x = screenX - menuWidth - padding;
+    }
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - padding;
+    }
+    if (y < padding) {
+      y = padding;
+    }
+    if (x < padding) {
+      x = padding;
+    }
+    
+    return { x, y };
+  };
+
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     viewRef.current = getViewSize();
-    canvas.width = viewRef.current.tilesX * 16;
-    canvas.height = viewRef.current.tilesY * 16;
+    canvas.width = viewRef.current.tilesX * TILE_SIZE;
+    canvas.height = viewRef.current.tilesY * TILE_SIZE;
   };
 
   const updateScale = () => {
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const scaleX = window.innerWidth / canvas.width;
-  const scaleY = window.innerHeight / canvas.height;
+    const scaleX = window.innerWidth / canvas.width;
+    const scaleY = window.innerHeight / canvas.height;
 
-  // Use the larger scale so it fills the screen
-  const scale = Math.max(scaleX, scaleY);
+    // Use the larger scale so it fills the screen
+    const scale = Math.max(scaleX, scaleY);
 
-  canvas.style.position = "fixed";
-  canvas.style.left = "50%";
-  canvas.style.top = "50%";
-  canvas.style.transformOrigin = "center";
-  canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
-};
+    canvas.style.position = "fixed";
+    canvas.style.left = "50%";
+    canvas.style.top = "50%";
+    canvas.style.transformOrigin = "center";
+    canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  };
 
   const redraw = () => {
     if (!imagesLoadedRef.current || !mapRef.current) return;
@@ -103,10 +148,14 @@ export default function BattleMap() {
       MAP_WIDTH,
       MAP_HEIGHT,
       revealTime,
-      { staggerMs: 14, dropDurationMs: 260, startYOffset: -32 }
+      { staggerMs: REVEAL_STAGGER_MS, dropDurationMs: REVEAL_DROP_DURATION_MS, startYOffset: REVEAL_START_Y_OFFSET }
     );
-    drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
-    drawUnits(ctx, enemyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
+    
+    // Only draw units after tile animation completes
+    if (phase !== PHASES.MAP_INTRO) {
+      drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
+      drawUnits(ctx, enemyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
+    }
 
     // Only show movement range and selection in move mode
     if (moveMode && movingUnit) {
@@ -141,8 +190,8 @@ export default function BattleMap() {
       mapRevealStartRef.current = performance.now();
       mapRevealTimeRef.current = 0;
       const view = viewRef.current;
-      const staggerMs = 14;
-      const dropDurationMs = 260;
+      const staggerMs = REVEAL_STAGGER_MS;
+      const dropDurationMs = REVEAL_DROP_DURATION_MS;
       const maxRing = Math.floor((view.tilesY - 1) / 2);
       const maxMx = cameraRef.current.x + view.tilesX - 1;
       const maxDelay = (maxRing * MAP_WIDTH + maxMx) * staggerMs;
@@ -245,11 +294,7 @@ export default function BattleMap() {
       setTurn(TURN.ENEMY);
       setMenuUnit(null);
       setMenuPosition(null);
-      setMoveMode(false);
-      setMovingUnit(null);
-      setReachableTiles([]);
-      setCurrentPath(null);
-      selectedUnitRef.current = null;
+      clearMoveMode();
     }
   }, [phase, turn, friendlyUnits, enemyUnits, moveMode, movingUnit]);
 
@@ -317,11 +362,7 @@ export default function BattleMap() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && moveMode) {
-        setMoveMode(false);
-        setMovingUnit(null);
-        setReachableTiles([]);
-        setCurrentPath(null);
-        selectedUnitRef.current = null;
+        clearMoveMode();
       }
     };
 
@@ -343,8 +384,6 @@ useEffect(() => {
 }, []);
 
   const handleMenuSelect = (action, unit) => {
-    console.log(`${action} selected for unit`, unit.id);
-    
     switch(action) {
       case "move":
         // Enter move mode
@@ -364,8 +403,7 @@ useEffect(() => {
         setMenuPosition(null);
         break;
       case "attack":
-        // Show attack range
-        console.log("Attack not yet implemented");
+        // TODO: Implement attack functionality
         break;
       case "info":
         // Show unit info panel
@@ -373,8 +411,7 @@ useEffect(() => {
         setInfoPanelOpen(true);
         break;
       case "link":
-        // Enemy link action
-        console.log("Link not yet implemented");
+        // TODO: Implement enemy link action
         break;
       default:
         break;
@@ -427,59 +464,20 @@ useEffect(() => {
         );
         
         // Exit move mode
-        setMoveMode(false);
-        setMovingUnit(null);
-        setReachableTiles([]);
-        setCurrentPath(null);
-        selectedUnitRef.current = null;
+        clearMoveMode();
       } else {
         // Clicked outside reachable area - cancel move mode
-        setMoveMode(false);
-        setMovingUnit(null);
-        setReachableTiles([]);
-        setCurrentPath(null);
-        selectedUnitRef.current = null;
+        clearMoveMode();
       }
     }
   };
 
   const handleUnitClick = (unit, screenX, screenY) => {
     if (unit && phase === PHASES.MAP_IDLE) {
-      // Calculate menu dimensions (approximate)
-      const menuWidth = 180;
-      const menuHeight = unit.faction === FACTION.ENEMY ? 180 : 240; // Enemy menu is shorter
-      const padding = 10;
-      
-      // Get viewport dimensions
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      
-      // Start with position to the right of click
-      let x = screenX + padding;
-      let y = screenY;
-      
-      // Check if menu would go off right edge
-      if (x + menuWidth > viewportWidth) {
-        x = screenX - menuWidth - padding; // Show on left instead
-      }
-      
-      // Check if menu would go off bottom edge
-      if (y + menuHeight > viewportHeight) {
-        y = viewportHeight - menuHeight - padding; // Push up to fit
-      }
-      
-      // Check if menu would go off top edge
-      if (y < padding) {
-        y = padding;
-      }
-      
-      // Check if menu would go off left edge
-      if (x < padding) {
-        x = padding;
-      }
+      const position = calculateMenuPosition(screenX, screenY, unit.faction);
       
       setMenuUnit(unit);
-      setMenuPosition({ x, y });
+      setMenuPosition(position);
       selectedUnitRef.current = unit;
       redraw();
     }

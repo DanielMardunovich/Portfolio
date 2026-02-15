@@ -14,5 +14,3 @@ export function getMovementTiles(unit, mapWidth, mapHeight, isWalkable) {
 
   return tiles;
 }
-
-export function canMoveTo(tile, unit, map) {} // later

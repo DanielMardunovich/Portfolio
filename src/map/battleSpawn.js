@@ -1,4 +1,3 @@
-import { MAP_WIDTH, MAP_HEIGHT } from "./battleConfig";
 import { TILES } from "./wfc/tiles";
 
 // Define spawn areas (rectangular regions)
@@ -44,6 +43,47 @@ function isPositionOccupied(x, y, existingUnits) {
 }
 
 /**
+ * Find the nearest spawnable tile around a given position
+ * Searches in expanding rings around the original position
+ * @param {number} x - Original x position
+ * @param {number} y - Original y position
+ * @param {Array} map - The game map (2D array of tile IDs)
+ * @param {Array} existingUnits - Units already placed
+ * @param {number} maxRadius - Maximum search radius
+ * @returns {Object|null} {x, y} position or null if no valid position found
+ */
+function findNearbySpawnableTile(x, y, map, existingUnits = [], maxRadius = 10) {
+  if (!map) return null;
+  
+  const mapHeight = map.length;
+  const mapWidth = map[0]?.length || 0;
+  
+  // Search in expanding rings
+  for (let radius = 1; radius <= maxRadius; radius++) {
+    // Check all positions at this distance
+    for (let dx = -radius; dx <= radius; dx++) {
+      for (let dy = -radius; dy <= radius; dy++) {
+        // Only check positions at exactly this radius (ring, not filled circle)
+        if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
+        
+        const nx = x + dx;
+        const ny = y + dy;
+        
+        // Check bounds
+        if (nx < 0 || ny < 0 || nx >= mapWidth || ny >= mapHeight) continue;
+        
+        // Check if spawnable and not occupied
+        if (isTileSpawnable(map[ny][nx]) && !isPositionOccupied(nx, ny, existingUnits)) {
+          return { x: nx, y: ny };
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Get a random unoccupied spawn position within an area
  * @param {Object} area - Spawn area with minX, maxX, minY, maxY
  * @param {Array} existingUnits - Units already placed
@@ -59,13 +99,32 @@ export function getSpawnPosition(area, existingUnits = [], map = null, maxAttemp
     if (isPositionOccupied(pos.x, pos.y, existingUnits)) continue;
     
     // Check if tile is spawnable (if map is provided)
-    if (map && !isTileSpawnable(map[pos.y]?.[pos.x])) continue;
-    
-    return pos;
+    if (map) {
+      if (isTileSpawnable(map[pos.y]?.[pos.x])) {
+        return pos; // Found a good spot
+      }
+      
+      // If the chosen position is on water, look for nearby spawnable tile
+      const nearbyPos = findNearbySpawnableTile(pos.x, pos.y, map, existingUnits);
+      if (nearbyPos) {
+        return nearbyPos;
+      }
+    } else {
+      return pos;
+    }
   }
   
   console.warn("Could not find a valid spawn position after", maxAttempts, "attempts");
-  return getRandomPosition(area); // Return any position as fallback
+  
+  // Last resort: try to find ANY spawnable tile near the center of the spawn area
+  if (map) {
+    const centerX = Math.floor((area.minX + area.maxX) / 2);
+    const centerY = Math.floor((area.minY + area.maxY) / 2);
+    const fallbackPos = findNearbySpawnableTile(centerX, centerY, map, existingUnits, 20);
+    if (fallbackPos) return fallbackPos;
+  }
+  
+  return getRandomPosition(area); // Return any position as final fallback
 }
 
 /**

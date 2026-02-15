@@ -34,7 +34,9 @@ export function drawMap(ctx, map, tileset, cam, view, mapW, mapH, revealTimeMs =
 
       let drawY = y * TILE_SIZE;
       if (revealTimeMs !== null) {
-        const ring = Math.min(my, mapH - 1 - my);
+        // Start reveal from the vertical center and expand outward
+        const centerY = Math.floor((mapH - 1) / 2);
+        const ring = Math.abs(my - centerY);
         const rowIndex = ring * mapW + mx;
         const delay = rowIndex * stagger;
         const localTime = revealTimeMs - delay;

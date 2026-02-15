@@ -118,7 +118,3 @@ export function attachBattleInput({
     canvas.removeEventListener("touchmove", onTouchMove);
   };
 }
-
-
-export function handleMouseMove(e, refs) {}
-export function handleMouseClick(e, refs, friendlyUnits) {}
