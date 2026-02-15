@@ -23,8 +23,8 @@ export function drawMap(ctx, map, tileset, cam, view, mapW, mapH, revealTimeMs =
   const dropDuration = revealConfig?.dropDurationMs ?? 260;
   const startYOffset = revealConfig?.startYOffset ?? -TILE_SIZE * 2;
 
-  for (let y = 0; y < view.tilesY; y++) {
-    for (let x = 0; x < view.tilesX; x++) {
+  for (let x = 0; x < view.tilesX; x++) {
+    for (let y = 0; y < view.tilesY; y++) {
       const mx = cam.x + x;
       const my = cam.y + y;
       if (mx < 0 || my < 0 || mx >= mapW || my >= mapH) continue;
@@ -34,11 +34,8 @@ export function drawMap(ctx, map, tileset, cam, view, mapW, mapH, revealTimeMs =
 
       let drawY = y * TILE_SIZE;
       if (revealTimeMs !== null) {
-        // Start reveal from the vertical center and expand outward
-        const centerY = Math.floor((mapH - 1) / 2);
-        const ring = Math.abs(my - centerY);
-        const rowIndex = ring * mapW + mx;
-        const delay = rowIndex * stagger;
+        // Reveal all tiles in column 0 at once, then column 1, etc.
+        const delay = x * stagger;
         const localTime = revealTimeMs - delay;
 
         if (localTime < 0) {

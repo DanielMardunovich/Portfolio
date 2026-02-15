@@ -26,8 +26,8 @@ import "../styles/battleMap.css";
 
 // Constants
 const TILE_SIZE = 16;
-const REVEAL_STAGGER_MS = 14;
-const REVEAL_DROP_DURATION_MS = 260;
+const REVEAL_STAGGER_MS = 60;
+const REVEAL_DROP_DURATION_MS = 500;
 const REVEAL_START_Y_OFFSET = -32;
 const MENU_WIDTH = 180;
 const MENU_HEIGHT_FRIENDLY = 240;
@@ -70,8 +70,46 @@ export default function BattleMap() {
   const [movingUnit, setMovingUnit] = useState(null);
   const [reachableTiles, setReachableTiles] = useState([]);
   const [currentPath, setCurrentPath] = useState(null);
-  const [infoPanelUnit, setInfoPanelUnit] = useState(null);
+  // InfoPanel state for portfolio project info
+  const [infoPanelProject, setInfoPanelProject] = useState(null);
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
+
+  // Example: Define your portfolio projects and contact methods here
+  // Friendly units = portfolio projects, enemies = you/contact methods
+  // To add more, add objects to these arrays and link them to units on the map
+  const portfolioProjects = [
+    {
+      title: "Pixel Art RPG Battle System",
+      description: "A turn-based RPG battle system demo built with React, Vite, and custom pathfinding. Features animated tile placement, dynamic scaling, and AI movement.",
+      image: "/Icons/project1.png", // Place your image in public/Icons/
+      links: [
+        { label: "GitHub", url: "https://github.com/yourusername/project1" },
+        { label: "Live Demo", url: "https://your-portfolio.com/project1" }
+      ],
+      highlights: [
+        "React + Vite frontend",
+        "A* pathfinding for unit movement",
+        "Procedural map generation"
+      ]
+    },
+    // Add more project objects here
+  ];
+  const contactMethods = [
+    {
+      title: "Contact Me",
+      description: "Let's connect! You can reach me via LinkedIn, email, or other platforms.",
+      image: "/Icons/contact.png",
+      links: [
+        { label: "LinkedIn", url: "https://linkedin.com/in/yourprofile" },
+        { label: "Email", url: "mailto:your@email.com" }
+      ],
+      highlights: [
+        "Open to collaboration",
+        "Available for freelance work"
+      ]
+    },
+    // Add more contact/enemy objects here
+  ];
   const enemyTurnHandledRef = useRef(false);
   const isAnimatingEnemyRef = useRef(false);
   const enemyAnimationTimeoutRef = useRef(null);
@@ -196,9 +234,8 @@ export default function BattleMap() {
       const view = viewRef.current;
       const staggerMs = REVEAL_STAGGER_MS;
       const dropDurationMs = REVEAL_DROP_DURATION_MS;
-      const maxRing = Math.floor((view.tilesY - 1) / 2);
-      const maxMx = cameraRef.current.x + view.tilesX - 1;
-      const maxDelay = (maxRing * MAP_WIDTH + maxMx) * staggerMs;
+      // For vertical sweep: maxDelay is (view.tilesX - 1) * staggerMs
+      const maxDelay = (view.tilesX - 1) * staggerMs;
       mapRevealTotalRef.current = maxDelay + dropDurationMs;
 
       const animateReveal = (now) => {
@@ -569,8 +606,15 @@ useEffect(() => {
         // TODO: Implement attack functionality
         break;
       case "info":
-        // Show unit info panel
-        setInfoPanelUnit(unit);
+        // Show portfolio info panel
+        // Example: If the unit is friendly, show a project; if enemy, show contact info
+        if (unit.faction === "friendly") {
+          // Map unit to a project (for demo, just use first project)
+          setInfoPanelProject(portfolioProjects[0]);
+        } else {
+          // Map enemy to contact info (for demo, just use first contact method)
+          setInfoPanelProject(contactMethods[0]);
+        }
         setInfoPanelOpen(true);
         break;
       case "link":
@@ -659,9 +703,12 @@ useEffect(() => {
         }}
       />
       <InfoPanel 
-        unit={infoPanelUnit}
+        project={infoPanelProject}
         isOpen={infoPanelOpen}
-        onClose={() => setInfoPanelOpen(false)}
+        onClose={() => {
+          setInfoPanelOpen(false);
+          setInfoPanelProject(null);
+        }}
       />
     </>
   );

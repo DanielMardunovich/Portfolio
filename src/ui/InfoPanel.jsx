@@ -1,93 +1,80 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/infoPanel.css";
 
-export default function InfoPanel({ unit, isOpen, onClose }) {
+
+// Portfolio InfoPanel: displays portfolio project info instead of unit stats
+export default function InfoPanel({ project, isOpen, onClose }) {
   const panelRef = useRef(null);
+  const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setClosing(false);
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
-        onClose();
+        handleClose();
       }
     };
-
-    if (isOpen) {
+    if (isOpen && !closing) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, onClose]);
+    // eslint-disable-next-line
+  }, [isOpen, closing]);
 
-  if (!unit) return null;
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(() => {
+      setClosing(false);
+      onClose();
+    }, 350); // match CSS transition
+  };
+
+  if (!project && !closing) return null;
 
   return (
     <>
-      {isOpen && <div className="info-panel-backdrop" onClick={onClose}></div>}
-      <div className={`info-panel ${isOpen ? "open" : ""}`} ref={panelRef}>
+      {(isOpen || closing) && <div className="info-panel-backdrop" onClick={handleClose}></div>}
+      <div
+        className={`info-panel${isOpen && !closing ? " open" : ""}${closing ? " closing" : ""}`}
+        ref={panelRef}
+      >
         <div className="info-panel-content">
           <div className="info-panel-header">
-            <h2 className="info-panel-title">{unit.name || "Unit Info"}</h2>
-            <button className="info-panel-close" onClick={onClose}>
+            <h2 className="info-panel-title">Portfolio Info</h2>
+            <button className="info-panel-close" onClick={handleClose}>
               ✕
             </button>
           </div>
-
           <div className="info-panel-body">
-            <div className="info-panel-main">
-              <div className="info-panel-image">
-                <div className="info-image-box">
-                  {unit.sprite && <img src={unit.sprite} alt={unit.name} />}
+            <div className="portfolio-main">
+              <div className="portfolio-image">
+                <div className="portfolio-image-box">
+                  {project && project.image && <img src={project.image} alt={project.title} />}
                 </div>
-                <div className="info-unit-name">{unit.name || "Unit"}</div>
               </div>
-
-              <div className="info-panel-stats">
-                <div className="info-stats-section">
-                  <div className="info-stats-header">Stats</div>
-                  <div className="info-stats-grid">
-                    <div className="info-stat-row">
-                      <span className="info-stat-label">HP</span>
-                      <span className="info-stat-value">{unit.hp}</span>
-                    </div>
-
-                    {unit.attack !== undefined && (
-                      <div className="info-stat-row">
-                        <span className="info-stat-label">ATK</span>
-                        <span className="info-stat-value">{unit.attack}</span>
-                      </div>
-                    )}
-
-                    {unit.defense !== undefined && (
-                      <div className="info-stat-row">
-                        <span className="info-stat-label">DEF</span>
-                        <span className="info-stat-value">{unit.defense}</span>
-                      </div>
-                    )}
-
-                    {unit.speed !== undefined && (
-                      <div className="info-stat-row">
-                        <span className="info-stat-label">SPD</span>
-                        <span className="info-stat-value">{unit.speed}</span>
-                      </div>
-                    )}
-
-                    {unit.maxHp && (
-                      <div className="info-stat-row">
-                        <span className="info-stat-label">Max</span>
-                        <span className="info-stat-value">{unit.maxHp}</span>
-                      </div>
-                    )}
-
-                    {unit.faction && (
-                      <div className="info-stat-row">
-                        <span className="info-stat-label">FCT</span>
-                        <span className="info-stat-value">{unit.faction}</span>
-                      </div>
-                    )}
+              <div className="portfolio-details">
+                <div className="portfolio-title">{project?.title || "Project Title"}</div>
+                <div className="portfolio-description">{project?.description || "Project description goes here. Describe your work, technologies used, and your role."}</div>
+                {project?.links && project.links.length > 0 && (
+                  <div className="portfolio-links">
+                    <span>Links: </span>
+                    {project.links.map((link, idx) => (
+                      <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer">{link.label || link.url}</a>
+                    ))}
                   </div>
-                </div>
+                )}
+                {project?.highlights && project.highlights.length > 0 && (
+                  <ul className="portfolio-highlights">
+                    {project.highlights.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           </div>
