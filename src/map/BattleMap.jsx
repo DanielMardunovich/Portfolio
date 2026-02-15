@@ -3,7 +3,7 @@ import { useGame } from "../game/GameContext";
 import { PHASES, TURN } from "../game/phases";
 import { createUnit, FACTION, UNIT_SPRITES } from "../game/units";
 import { generateMap } from "./wfc/wfc";
-import { generateValidatedMap } from "./pathValidation";
+import { generateValidatedMap, getTileWalkCost } from "./pathValidation";
 import UnitMenu from "../ui/UnitMenu";
 import InfoPanel from "../ui/InfoPanel";
 
@@ -401,15 +401,90 @@ export default function BattleMap() {
           continue;
         }
 
-        // Get path using pathfinding (ensures no diagonal/skipping)
-        const path = findPath(
-          enemy.x,
-          enemy.y,
-          bestTile.x,
-          bestTile.y,
-          mapRef.current,
-          enemy.move
-        );
+
+        // Custom pathfinding that blocks occupied tiles (except start)
+        const occupiedSet = new Set(occupied.map(pos => `${pos.x},${pos.y}`));
+        const path = (() => {
+          const width = mapRef.current[0].length;
+          const height = mapRef.current.length;
+          const key = (x, y) => `${x},${y}`;
+          const openSet = new Set();
+          const closedSet = new Set();
+          const nodes = new Map();
+          const startNode = {
+            x: enemy.x,
+            y: enemy.y,
+            g: 0,
+            h: Math.abs(bestTile.x - enemy.x) + Math.abs(bestTile.y - enemy.y),
+            f: 0,
+            parent: null
+          };
+          startNode.f = startNode.g + startNode.h;
+          nodes.set(key(enemy.x, enemy.y), startNode);
+          openSet.add(key(enemy.x, enemy.y));
+          while (openSet.size > 0) {
+            let currentKey = null;
+            let lowestF = Infinity;
+            for (const k of openSet) {
+              const node = nodes.get(k);
+              if (node.f < lowestF) {
+                lowestF = node.f;
+                currentKey = k;
+              }
+            }
+            const current = nodes.get(currentKey);
+            if (current.x === bestTile.x && current.y === bestTile.y) {
+              // reconstruct path
+              const path = [];
+              let c = current;
+              while (c !== null) {
+                path.unshift({ x: c.x, y: c.y });
+                c = c.parent;
+              }
+              return path;
+            }
+            openSet.delete(currentKey);
+            closedSet.add(currentKey);
+            const neighbors = [
+              { x: current.x + 1, y: current.y },
+              { x: current.x - 1, y: current.y },
+              { x: current.x, y: current.y + 1 },
+              { x: current.x, y: current.y - 1 }
+            ];
+            for (const neighbor of neighbors) {
+              const { x, y } = neighbor;
+              if (x < 0 || x >= width || y < 0 || y >= height) continue;
+              // Block occupied tiles except for the starting tile
+              if (!(x === enemy.x && y === enemy.y) && occupiedSet.has(key(x, y))) continue;
+              const neighborKey = key(x, y);
+              if (closedSet.has(neighborKey)) continue;
+              const tileCost = getTileWalkCost(mapRef.current[y][x]);
+              const tentativeG = current.g + tileCost;
+              if (tentativeG > enemy.move) continue;
+              let neighborNode = nodes.get(neighborKey);
+              if (!neighborNode) {
+                neighborNode = {
+                  x,
+                  y,
+                  g: Infinity,
+                  h: Math.abs(bestTile.x - x) + Math.abs(bestTile.y - y),
+                  f: Infinity,
+                  parent: null
+                };
+                nodes.set(neighborKey, neighborNode);
+              }
+              if (tentativeG < neighborNode.g) {
+                neighborNode.g = tentativeG;
+                neighborNode.f = neighborNode.g + neighborNode.h;
+                neighborNode.parent = current;
+                if (!openSet.has(neighborKey)) {
+                  openSet.add(neighborKey);
+                }
+              }
+            }
+          }
+          return null;
+        })();
 
         // Animate movement along path
         await new Promise(resolve => {

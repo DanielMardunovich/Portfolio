@@ -7,29 +7,29 @@ export const TILES = [
   { id: "grass_flower", sx: 2, sy: 0, weight: 12, walkCost: 1, spawnable: true },
 
   // Water Tiles L
-  { id: "water_connectsgrass_tl", sx: 0, sy: 1, weight: 3, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_bl", sx: 0, sy: 3, weight: 3, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_tl_corner", sx: 0, sy: 5, weight: 2, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_bl_corner", sx: 3, sy: 5, weight: 2, walkCost: 5, spawnable: false },
+  { id: "water_connectsgrass_tl", sx: 0, sy: 1, weight: 3, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_bl", sx: 0, sy: 3, weight: 3, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_tl_corner", sx: 0, sy: 5, weight: 2, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_bl_corner", sx: 3, sy: 5, weight: 2, walkCost: 4, spawnable: false },
 
   // Water Tiles R
-  { id: "water_connectsgrass_tr", sx: 2, sy: 1, weight: 3, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_br", sx: 2, sy: 3, weight: 3, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_tr_corner", sx: 1, sy: 5, weight: 2, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_br_corner", sx: 2, sy: 5, weight: 2, walkCost: 5, spawnable: false },
+  { id: "water_connectsgrass_tr", sx: 2, sy: 1, weight: 3, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_br", sx: 2, sy: 3, weight: 3, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_tr_corner", sx: 1, sy: 5, weight: 2, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_br_corner", sx: 2, sy: 5, weight: 2, walkCost: 4, spawnable: false },
 
   // Water Tiles C
-  { id: "water_center", sx: 1, sy: 2, weight: 12, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_l", sx: 0, sy: 2, weight: 5, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_r", sx: 2, sy: 2, weight: 5, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_t", sx: 1, sy: 1, weight: 5, walkCost: 5, spawnable: false },
-  { id: "water_connectsgrass_b", sx: 1, sy: 3, weight: 5, walkCost: 5, spawnable: false },
+  { id: "water_center", sx: 1, sy: 2, weight: 12, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_l", sx: 0, sy: 2, weight: 5, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_r", sx: 2, sy: 2, weight: 5, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_t", sx: 1, sy: 1, weight: 5, walkCost: 4, spawnable: false },
+  { id: "water_connectsgrass_b", sx: 1, sy: 3, weight: 5, walkCost: 4, spawnable: false },
 
   //River to water connections
-  { id: "water_connectsriver_l", sx: 2, sy: 4, weight: 0.8, walkCost: 5, spawnable: false },
-  { id: "water_connectsriver_r", sx: 0, sy: 4, weight: 0.8, walkCost: 5, spawnable: false },
-  { id: "water_connectsriver_b", sx: 3, sy: 2, weight: 0.8, walkCost: 5, spawnable: false },
-  { id: "water_connectsriver_t", sx: 3, sy: 4, weight: 0.8, walkCost: 5, spawnable: false },
+  { id: "water_connectsriver_l", sx: 2, sy: 4, weight: 0.8, walkCost: 4, spawnable: false },
+  { id: "water_connectsriver_r", sx: 0, sy: 4, weight: 0.8, walkCost: 4, spawnable: false },
+  { id: "water_connectsriver_b", sx: 3, sy: 2, weight: 0.8, walkCost: 4, spawnable: false },
+  { id: "water_connectsriver_t", sx: 3, sy: 4, weight: 0.8, walkCost: 4, spawnable: false },
 
   //River Tiles L
   { id: "river_connectsgrass_bl", sx: 3, sy: 1, weight: 2, walkCost: 3, spawnable: false },
