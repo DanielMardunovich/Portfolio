@@ -33,6 +33,8 @@ const MENU_WIDTH = 180;
 const MENU_HEIGHT_FRIENDLY = 240;
 const MENU_HEIGHT_ENEMY = 180;
 const MENU_PADDING = 10;
+const ENEMY_MOVE_DELAY_MS = 200; // Time per tile for enemy movement
+const ENEMY_TURN_DELAY_MS = 300; // Delay between enemy unit moves
 
 export default function BattleMap() {
   const {
@@ -71,6 +73,8 @@ export default function BattleMap() {
   const [infoPanelUnit, setInfoPanelUnit] = useState(null);
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
   const enemyTurnHandledRef = useRef(false);
+  const isAnimatingEnemyRef = useRef(false);
+  const enemyAnimationTimeoutRef = useRef(null);
 
   // Helper function to clear move mode state
   const clearMoveMode = () => {
@@ -298,6 +302,38 @@ export default function BattleMap() {
     }
   }, [phase, turn, friendlyUnits, enemyUnits, moveMode, movingUnit]);
 
+  // Animate enemy unit along path
+  const animateEnemyMovement = (enemy, path, onComplete) => {
+    if (!path || path.length <= 1) {
+      onComplete();
+      return;
+    }
+
+    let stepIndex = 1; // Start from 1 (skip current position)
+
+    const moveStep = () => {
+      if (stepIndex >= path.length) {
+        onComplete();
+        return;
+      }
+
+      const nextPos = path[stepIndex];
+      setEnemyUnits(units => 
+        units.map(u => 
+          u.id === enemy.id 
+            ? { ...u, x: nextPos.x, y: nextPos.y }
+            : u
+        )
+      );
+
+      stepIndex++;
+      enemyAnimationTimeoutRef.current = setTimeout(moveStep, ENEMY_MOVE_DELAY_MS);
+    };
+
+    moveStep();
+  };
+
+  // Process enemy turns one at a time with animation
   useEffect(() => {
     if (phase !== PHASES.MAP_IDLE) return;
     if (turn !== TURN.ENEMY) {
@@ -305,6 +341,8 @@ export default function BattleMap() {
       return;
     }
     if (enemyTurnHandledRef.current) return;
+    if (isAnimatingEnemyRef.current) return;
+    
     enemyTurnHandledRef.current = true;
 
     if (!mapRef.current || friendlyUnits.length === 0 || enemyUnits.length === 0) {
@@ -314,49 +352,99 @@ export default function BattleMap() {
       return;
     }
 
-    const occupiedPositions = [...friendlyUnits, ...enemyUnits].map(u => ({ x: u.x, y: u.y }));
-    const updatedEnemies = enemyUnits.map(enemy => {
-      if (enemy.hasActed) return enemy;
+    // Process enemies sequentially with animation
+    const processEnemies = async () => {
+      isAnimatingEnemyRef.current = true;
+      
+      const enemiesToMove = enemyUnits.filter(e => !e.hasActed);
+      
+      for (const enemy of enemiesToMove) {
+        // Get all occupied positions (excluding current enemy)
+        const occupied = [...friendlyUnits, ...enemyUnits]
+          .filter(u => u.id !== enemy.id)
+          .map(u => ({ x: u.x, y: u.y }));
 
-      const occupied = occupiedPositions.filter(pos => !(pos.x === enemy.x && pos.y === enemy.y));
+        const reachable = getReachableTiles(enemy.x, enemy.y, enemy.move, mapRef.current, occupied);
+        
+        if (reachable.length === 0) {
+          // Mark as acted if can't move
+          setEnemyUnits(units => 
+            units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u)
+          );
+          continue;
+        }
 
-      const reachable = getReachableTiles(enemy.x, enemy.y, enemy.move, mapRef.current, occupied);
-      if (reachable.length === 0) {
-        return { ...enemy, hasActed: true };
-      }
+        // Find best tile closest to friendly units
+        let bestTile = null;
+        let bestDistance = Infinity;
+        let bestCost = Infinity;
 
-      let bestTile = null;
-      let bestDistance = Infinity;
-      let bestCost = Infinity;
+        for (const tile of reachable) {
+          const minDistanceToFriendly = Math.min(
+            ...friendlyUnits.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
+          );
 
-      for (const tile of reachable) {
-        const minDistanceToFriendly = Math.min(
-          ...friendlyUnits.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
+          if (
+            minDistanceToFriendly < bestDistance ||
+            (minDistanceToFriendly === bestDistance && tile.cost < bestCost)
+          ) {
+            bestDistance = minDistanceToFriendly;
+            bestCost = tile.cost;
+            bestTile = tile;
+          }
+        }
+
+        if (!bestTile) {
+          setEnemyUnits(units => 
+            units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u)
+          );
+          continue;
+        }
+
+        // Get path using pathfinding (ensures no diagonal/skipping)
+        const path = findPath(
+          enemy.x,
+          enemy.y,
+          bestTile.x,
+          bestTile.y,
+          mapRef.current,
+          enemy.move
         );
 
-        if (
-          minDistanceToFriendly < bestDistance ||
-          (minDistanceToFriendly === bestDistance && tile.cost < bestCost)
-        ) {
-          bestDistance = minDistanceToFriendly;
-          bestCost = tile.cost;
-          bestTile = tile;
-        }
+        // Animate movement along path
+        await new Promise(resolve => {
+          animateEnemyMovement(enemy, path, () => {
+            // Mark as acted after animation
+            setEnemyUnits(units => 
+              units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u)
+            );
+            resolve();
+          });
+        });
+
+        // Small delay between enemy moves
+        await new Promise(resolve => setTimeout(resolve, ENEMY_TURN_DELAY_MS));
       }
 
-      if (!bestTile) {
-        return { ...enemy, hasActed: true };
-      }
+      // All enemies moved, end turn
+      isAnimatingEnemyRef.current = false;
+      setEnemyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+      setFriendlyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+      setTurn(TURN.PLAYER);
+    };
 
-      const newEnemy = { ...enemy, x: bestTile.x, y: bestTile.y, hasActed: true };
-      occupiedPositions.push({ x: newEnemy.x, y: newEnemy.y });
-      return newEnemy;
-    });
-
-    setEnemyUnits(updatedEnemies.map(u => ({ ...u, hasActed: false })));
-    setTurn(TURN.PLAYER);
-    setFriendlyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+    processEnemies();
   }, [phase, turn, friendlyUnits, enemyUnits]);
+
+  // Cleanup enemy animation on unmount
+  useEffect(() => {
+    return () => {
+      if (enemyAnimationTimeoutRef.current) {
+        clearTimeout(enemyAnimationTimeoutRef.current);
+        enemyAnimationTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // Handle Escape key to cancel move mode
   useEffect(() => {
