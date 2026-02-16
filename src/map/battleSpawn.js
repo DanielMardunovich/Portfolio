@@ -7,8 +7,8 @@ export const SPAWN_AREAS = {
   FRIENDLY: {
     minX: 10,
     maxX: 20,
-    minY: 14,
-    maxY: 17
+    minY: 12,
+    maxY: 14
   },
   ENEMY: {
     minX: 10,
