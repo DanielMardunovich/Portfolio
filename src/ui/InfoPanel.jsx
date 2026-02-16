@@ -45,8 +45,8 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
         ref={panelRef}
       >
         <div className="info-panel-content">
-          <div className="info-panel-header">
-            <h2 className="info-panel-title">Portfolio Info</h2>
+            <div className="info-panel-header">
+            <h2 className="info-panel-title">{unit ? (unit.meta?.info?.name || unit.type || unit.id) : "Portfolio Info"}</h2>
             <button className="info-panel-close" onClick={handleClose}>
               ✕
             </button>

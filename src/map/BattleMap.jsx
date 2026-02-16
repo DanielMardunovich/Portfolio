@@ -2,8 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useGame } from "../game/GameContext";
 import { PHASES, TURN } from "../game/phases";
 import { createUnit, FACTION, UNIT_SPRITES, createUnitFromType, listRegisteredUnitTypes } from "../game/units";
-// Load unit definitions (they register themselves via registerUnitType)
-import "../game/units/ExampleUnit.js";
+// Auto-load unit definitions (any .js file under src/game/units will be imported
+// eagerly so it can call `registerUnitType` during module initialization).
+// Uses Vite's `import.meta.glob` (works with Vite dev + build).
+try {
+  import.meta.glob("../game/units/*.js", { eager: true });
+} catch (e) {
+  // graceful fallback for environments without import.meta.glob
+}
 import { generateMap } from "./wfc/wfc";
 import { generateValidatedMap, getTileWalkCost } from "./pathValidation";
 import UnitMenu from "../ui/UnitMenu";
