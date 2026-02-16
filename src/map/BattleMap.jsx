@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useGame } from "../game/GameContext";
 import { PHASES, TURN } from "../game/phases";
-import { createUnit, FACTION, UNIT_SPRITES } from "../game/units";
+import { createUnit, FACTION, UNIT_SPRITES, createUnitFromType, listRegisteredUnitTypes } from "../game/units";
+// Load unit definitions (they register themselves via registerUnitType)
+import "../game/units/ExampleUnit.js";
 import { generateMap } from "./wfc/wfc";
 import { generateValidatedMap, getTileWalkCost } from "./pathValidation";
 import UnitMenu from "../ui/UnitMenu";
@@ -83,6 +85,7 @@ export default function BattleMap() {
   const [attackTiles, setAttackTiles] = useState([]);
   // InfoPanel state for portfolio project info
   const [infoPanelProject, setInfoPanelProject] = useState(null);
+  const [infoPanelUnit, setInfoPanelUnit] = useState(null);
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [bubblePos, setBubblePos] = useState(null);
@@ -408,11 +411,40 @@ export default function BattleMap() {
 
     setTurn(TURN.PLAYER);
     
-    // Spawn friendly units in their area
-    const friendlyConfigs = [
-      createUnit({ id: "p1", faction: FACTION.FRIENDLY, sprite: UNIT_SPRITES.FRIENDLY_SOLDIER, x: 0, y: 0 }),
-      createUnit({ id: "p2", faction: FACTION.FRIENDLY, sprite: UNIT_SPRITES.FRIENDLY_ARCHER, x: 0, y: 0 })
-    ];
+    // Clear any existing units
+    setFriendlyUnits([]);
+    setEnemyUnits([]);
+
+    // Spawn all registered unit types. Each registered type is instantiated
+    // (defaults come from the Unit class) and then placed into the appropriate
+    // spawn area based on its `faction` value.
+    const registered = listRegisteredUnitTypes();
+    const friendlyConfigs = [];
+    const enemyConfigs = [];
+
+    registered.forEach((typeName, idx) => {
+      try {
+        const id = `${typeName}_${idx}`;
+        const def = createUnitFromType(typeName, { id, x: 0, y: 0 });
+        const config = {
+          id: def.id,
+          type: def.type,
+          faction: def.faction,
+          sprite: def.sprite,
+          hp: def.hp,
+          atk: def.atk,
+          move: def.move,
+          range: def.range,
+          meta: def.meta // include images/info for UI
+        };
+
+        if (def.faction === FACTION.ENEMY) enemyConfigs.push(config);
+        else friendlyConfigs.push(config);
+      } catch (err) {
+        console.warn("Failed to instantiate registered unit", typeName, err);
+      }
+    });
+
     const spawnedFriendly = spawnUnitsInArea(friendlyConfigs, SPAWN_AREAS.FRIENDLY, mapRef.current);
     setFriendlyUnits(spawnedFriendly);
     // Show speech bubble above first friendly unit
@@ -427,10 +459,6 @@ export default function BattleMap() {
     }
     
     // Spawn enemy units in their area
-    const enemyConfigs = [
-      createUnit({ id: "e1", faction: FACTION.ENEMY, sprite: UNIT_SPRITES.ENEMY_SOLDIER, x: 0, y: 0 }),
-      createUnit({ id: "e2", faction: FACTION.ENEMY, sprite: UNIT_SPRITES.ENEMY_ARCHER, x: 0, y: 0 })
-    ];
     const spawnedEnemy = spawnUnitsInArea(enemyConfigs, SPAWN_AREAS.ENEMY, mapRef.current);
     setEnemyUnits(spawnedEnemy);
   }, [phase]);
@@ -905,12 +933,9 @@ useEffect(() => {
         }
         break;
       case "info":
-        // Show portfolio info panel
-        if (unit.faction === "friendly") {
-          setInfoPanelProject(portfolioProjects[0]);
-        } else {
-          setInfoPanelProject(contactMethods[0]);
-        }
+        // Open the info panel with the clicked unit's meta (preferred)
+        setInfoPanelUnit(unit);
+        setInfoPanelProject(null);
         setInfoPanelOpen(true);
         break;
       case "link":
@@ -1101,12 +1126,14 @@ useEffect(() => {
           setMenuPosition(null);
         }}
       />
-      <InfoPanel 
+      <InfoPanel
         project={infoPanelProject}
+        unit={infoPanelUnit}
         isOpen={infoPanelOpen}
         onClose={() => {
           setInfoPanelOpen(false);
           setInfoPanelProject(null);
+          setInfoPanelUnit(null);
         }}
       />
     </>

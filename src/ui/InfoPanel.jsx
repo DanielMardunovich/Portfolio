@@ -3,7 +3,7 @@ import "../styles/infoPanel.css";
 
 
 // Portfolio InfoPanel: displays portfolio project info instead of unit stats
-export default function InfoPanel({ project, isOpen, onClose }) {
+export default function InfoPanel({ project, unit, isOpen, onClose }) {
   const panelRef = useRef(null);
   const [closing, setClosing] = useState(false);
 
@@ -34,7 +34,8 @@ export default function InfoPanel({ project, isOpen, onClose }) {
     }, 350); // match CSS transition
   };
 
-  if (!project && !closing) return null;
+  // If a unit is provided prefer it, otherwise fall back to project (portfolio)
+  if (!project && !unit && !closing) return null;
 
   return (
     <>
@@ -51,29 +52,56 @@ export default function InfoPanel({ project, isOpen, onClose }) {
             </button>
           </div>
           <div className="info-panel-body">
-            <div className="portfolio-main">
-              <div className="portfolio-image">
-                <div className="portfolio-image-box">
-                  {project && project.image && <img src={project.image} alt={project.title} />}
-                </div>
-              </div>
-              <div className="portfolio-details">
-                <div className="portfolio-title">{project?.title || "Project Title"}</div>
-                <div className="portfolio-description">{project?.description || "Project description goes here. Describe your work, technologies used, and your role."}</div>
-                {project?.links && project.links.length > 0 && (
-                  <div className="portfolio-links">
-                    <span>Links: </span>
-                    {project.links.map((link, idx) => (
-                      <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer">{link.label || link.url}</a>
-                    ))}
+            <div className="info-panel-main">
+              <div className="info-panel-image">
+                {unit ? (
+                  // Render each image inside its own box stacked vertically
+                  unit.meta?.images?.map((src, idx) => (
+                    <div className="info-image-box" key={idx}>
+                      <img src={src} alt={`${unit.id || unit.type}-img-${idx}`} />
+                    </div>
+                  ))
+                ) : (
+                  <div className="info-image-box">
+                    {project && project.image && <img src={project.image} alt={project.title} />}
                   </div>
                 )}
-                {project?.highlights && project.highlights.length > 0 && (
-                  <ul className="portfolio-highlights">
-                    {project.highlights.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
+                {/* Unit name below images */}
+                {/* unit name removed (headline shown in right column header) */}
+              </div>
+              <div className="info-panel-stats">
+                {unit ? (
+                  <div className="info-stats-section">
+                    <div className="info-stats-header">{unit.meta?.info?.headline || "Description"}</div>
+                    <div className="portfolio-description">{unit.meta?.info?.text || ""}</div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="info-stats-section">
+                      <div className="info-stats-header">{project?.title || "Project Title"}</div>
+                      <div className="portfolio-description">{project?.description || "Project description goes here. Describe your work, technologies used, and your role."}</div>
+                    </div>
+                    {project?.links && project.links.length > 0 && (
+                      <div className="info-stats-section">
+                        <div className="info-stats-header">Links</div>
+                        <div className="portfolio-links">
+                          {project.links.map((link, idx) => (
+                            <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer">{link.label || link.url}</a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {project?.highlights && project.highlights.length > 0 && (
+                      <div className="info-stats-section">
+                        <div className="info-stats-header">Highlights</div>
+                        <ul className="portfolio-highlights">
+                          {project.highlights.map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
