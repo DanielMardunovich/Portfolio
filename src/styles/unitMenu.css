@@ -31,6 +31,16 @@
   margin-bottom: 4px;
 }
 
+.unit-menu-name {
+  color: #fff8e7;
+  font-weight: bold;
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
 .unit-menu-info-item {
   display: flex;
   justify-content: space-between;

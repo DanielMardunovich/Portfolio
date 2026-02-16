@@ -46,9 +46,18 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
       }}
     >
       <div className="unit-menu-header">
+        <div className="unit-menu-name">{unit.meta?.info?.name || unit.type || unit.id}</div>
         <div className="unit-menu-info-item">
           <span className="unit-info-label">HP</span>
           <span className="unit-info-value">{unit.hp}</span>
+        </div>
+        <div className="unit-menu-info-item">
+          <span className="unit-info-label">ATK</span>
+          <span className="unit-info-value">{unit.atk ?? unit.meta?.atk ?? "-"}</span>
+        </div>
+        <div className="unit-menu-info-item">
+          <span className="unit-info-label">RNG</span>
+          <span className="unit-info-value">{unit.range ?? unit.meta?.range ?? "-"}</span>
         </div>
         <div className="unit-menu-divider"></div>
       </div>
