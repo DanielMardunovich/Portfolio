@@ -61,11 +61,16 @@ export function drawMap(ctx, map, tileset, cam, view, mapW, mapH, revealTimeMs =
   }
 }
 
-export function drawUnits(ctx, units, sprites, cam, view) {
+export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOffsets = null) {
   units.forEach(u => {
     const x = u.x - cam.x;
     const y = u.y - cam.y;
     if (x < 0 || y < 0 || x >= view.tilesX || y >= view.tilesY) return;
+
+    // Apply shake offset when provided
+    const offset = (shakeOffsets && shakeOffsets.has(u.id)) ? shakeOffsets.get(u.id) : { dx: 0, dy: 0 };
+    const drawX = x * TILE_SIZE + (offset.dx || 0);
+    const drawY = y * TILE_SIZE + (offset.dy || 0);
 
     ctx.drawImage(
       sprites,
@@ -73,19 +78,60 @@ export function drawUnits(ctx, units, sprites, cam, view) {
       u.sprite.sy * TILE_SIZE,
       TILE_SIZE,
       TILE_SIZE,
-      x * TILE_SIZE,
-      y * TILE_SIZE,
+      drawX,
+      drawY,
       TILE_SIZE,
       TILE_SIZE
     );
+
+    // Draw hit flash overlay if present (opacity provided in hitMap)
+    if (hitMap && hitMap.has(u.id)) {
+      const opacity = hitMap.get(u.id) ?? 0.5;
+      ctx.save();
+      ctx.fillStyle = `rgba(255,0,0,${opacity})`;
+      ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+      ctx.restore();
+    }
+
     // If unit is dead, draw a semi-transparent gray overlay so it appears grayed out
     if (u.isDead) {
       ctx.save();
       ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
       ctx.restore();
     }
   });
+}
+
+export function drawDamageNumbers(ctx, damageNumbers, cam) {
+  if (!damageNumbers || damageNumbers.length === 0) return;
+  ctx.save();
+  ctx.font = "12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom";
+  for (let i = damageNumbers.length - 1; i >= 0; i--) {
+    const d = damageNumbers[i];
+    const now = performance.now();
+    const elapsed = now - d.start;
+    if (elapsed < 0) continue;
+    const t = Math.min(1, elapsed / d.duration);
+    const alpha = 1 - t;
+    const rise = t * 20; // pixels to rise
+
+    const sx = d.x - cam.x;
+    const sy = d.y - cam.y;
+    if (sx < -1 || sy < -1) continue;
+
+    const px = sx * TILE_SIZE + TILE_SIZE / 2;
+    const py = sy * TILE_SIZE - rise;
+
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.strokeText(String(d.amount), px, py);
+    ctx.fillText(String(d.amount), px, py);
+  }
+  ctx.restore();
 }
 
 export function drawOverlayTile(ctx, tileset, sprite, x, y, cam) {

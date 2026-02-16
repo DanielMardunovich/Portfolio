@@ -22,7 +22,8 @@ import {
   drawMovementRange,
   drawColoredRange,
   drawGrid,
-  drawPath
+  drawPath,
+  drawDamageNumbers
 } from "./battleRender";
 
 import "../styles/battleMap.css";
@@ -61,6 +62,10 @@ export default function BattleMap() {
 
   const cursorRef = useRef({ x: 0, y: 0 });
   const selectedUnitRef = useRef(null);
+  const hitAnimationsRef = useRef(new Map());
+  const hitAnimatingRef = useRef(false);
+  const shakeRef = useRef(new Map());
+  const damageNumbersRef = useRef([]);
   const imagesLoadedRef = useRef(false);
   const mapRevealStartRef = useRef(0);
   const mapRevealTimeRef = useRef(0);
@@ -133,6 +138,51 @@ export default function BattleMap() {
     selectedUnitRef.current = null;
   };
 
+  const triggerHitAnimation = (unitId) => {
+    const DURATION = 300; // ms
+    const end = performance.now() + DURATION;
+    hitAnimationsRef.current.set(unitId, end);
+
+    if (!hitAnimatingRef.current) {
+      hitAnimatingRef.current = true;
+      const loop = () => {
+        const now = performance.now();
+        for (const [id, e] of hitAnimationsRef.current.entries()) {
+          if (e <= now) hitAnimationsRef.current.delete(id);
+        }
+        redraw();
+        if (hitAnimationsRef.current.size > 0) {
+          requestAnimationFrame(loop);
+        } else {
+          hitAnimatingRef.current = false;
+        }
+      };
+      requestAnimationFrame(loop);
+    } else {
+      redraw();
+    }
+  };
+
+  const triggerDamage = (unitId, amount) => {
+    // Red flash
+    triggerHitAnimation(unitId);
+
+    const now = performance.now();
+    const SHAKE_DURATION = 300;
+    const SHAKE_MAG = 4;
+    shakeRef.current.set(unitId, { start: now, end: now + SHAKE_DURATION, duration: SHAKE_DURATION, mag: SHAKE_MAG });
+
+    // Find unit position at time of hit
+    const unit = [...friendlyUnits, ...enemyUnits].find(u => u.id === unitId);
+    const x = unit ? unit.x : 0;
+    const y = unit ? unit.y : 0;
+
+    const dmgEntry = { id: Math.random().toString(36).substr(2,9), unitId, amount, start: now, duration: 800, x, y };
+    damageNumbersRef.current.push(dmgEntry);
+
+    redraw();
+  };
+
   // Helper function to calculate menu position
   const calculateMenuPosition = (screenX, screenY, faction) => {
     const menuWidth = MENU_WIDTH;
@@ -203,9 +253,37 @@ export default function BattleMap() {
 
   const redraw = () => {
     if (!imagesLoadedRef.current || !mapRef.current) return;
-
     const ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    const nowForHit = performance.now();
+    const hitMap = new Map();
+    for (const [id, end] of hitAnimationsRef.current.entries()) {
+      const remaining = Math.max(0, end - nowForHit);
+      const opacity = Math.min(1, remaining / 300);
+      if (opacity > 0) hitMap.set(id, opacity * 0.85);
+    }
+
+    // Compute shake offsets per unit and prune finished shakes
+    const nowForShake = performance.now();
+    const shakeOffsets = new Map();
+    for (const [id, obj] of shakeRef.current.entries()) {
+      const remaining = obj.end - nowForShake;
+      if (remaining <= 0) {
+        shakeRef.current.delete(id);
+        continue;
+      }
+      const elapsed = nowForShake - obj.start;
+      const t = Math.min(1, elapsed / obj.duration);
+      const amp = obj.mag * (1 - t);
+      const dx = (Math.random() * 2 - 1) * amp;
+      const dy = (Math.random() * 2 - 1) * amp;
+      shakeOffsets.set(id, { dx, dy });
+    }
+
+    // Prune expired damage numbers
+    const nowForDmg = performance.now();
+    damageNumbersRef.current = damageNumbersRef.current.filter(d => (nowForDmg - d.start) < d.duration);
 
     const revealTime = phase === PHASES.MAP_INTRO ? mapRevealTimeRef.current : null;
     drawMap(
@@ -222,8 +300,8 @@ export default function BattleMap() {
     
     // Only draw units after tile animation completes
     if (phase !== PHASES.MAP_INTRO) {
-      drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
-      drawUnits(ctx, enemyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
+      drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets);
+      drawUnits(ctx, enemyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets);
     }
 
     drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
@@ -250,6 +328,9 @@ export default function BattleMap() {
     if (enemySelectedUnit && enemyReachableTiles && enemyReachableTiles.length > 0) {
       drawColoredRange(ctx, enemyReachableTiles, cameraRef.current, "rgba(255,0,0,0.45)");
     }
+
+    // Draw floating damage numbers above everything
+    drawDamageNumbers(ctx, damageNumbersRef.current, cameraRef.current);
   };
 
   useEffect(() => {
@@ -474,6 +555,8 @@ export default function BattleMap() {
             return { ...u, hp: newHp, isDead: newHp <= 0, hasActed: newHp <= 0 ? true : u.hasActed };
           }));
 
+          triggerDamage(targetInRange.id, enemy.atk);
+
           // Mark enemy as acted
           setEnemyUnits(units => units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u));
 
@@ -643,12 +726,13 @@ export default function BattleMap() {
         await new Promise(resolve => {
           animateEnemyMovement(enemy, path, () => {
             // If we moved to attack, apply damage to the target (if still present and alive)
-            if (attackTargetId) {
+              if (attackTargetId) {
               setFriendlyUnits(units => units.map(u => {
                 if (u.id !== attackTargetId) return u;
                 const newHp = (u.hp ?? 0) - enemy.atk;
                 return { ...u, hp: newHp, isDead: newHp <= 0, hasActed: newHp <= 0 ? true : u.hasActed };
               }));
+              triggerDamage(attackTargetId, enemy.atk);
             }
 
             // Mark as acted after animation
@@ -871,6 +955,7 @@ useEffect(() => {
         // Attack in place if within range
         if (dist <= movingUnit.range) {
           applyDamageToEnemy(unit.id, movingUnit.atk);
+          triggerDamage(unit.id, movingUnit.atk);
           // Mark mover as acted and exit move mode
           setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, hasActed: true } : u));
           clearMoveMode();
@@ -887,6 +972,7 @@ useEffect(() => {
           // Move the unit to the attack tile (instant) and then attack
           setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, x: attackTile.x, y: attackTile.y, hasActed: true } : u));
           applyDamageToEnemy(unit.id, movingUnit.atk);
+          triggerDamage(unit.id, movingUnit.atk);
           clearMoveMode();
           return;
         }
