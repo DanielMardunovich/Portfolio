@@ -6,7 +6,7 @@ export default class ExampleSoldier extends UnitBase {
   constructor(opts = {}) {
     super({
       ...opts,
-      faction: opts.faction || "friendly",
+      faction: opts.faction || "enemy",
       sprite: opts.sprite || { sx: 16, sy: 5 },
       hp: opts.hp ?? 20,
       atk: opts.atk ?? 4,
@@ -27,4 +27,4 @@ export default class ExampleSoldier extends UnitBase {
 }
 
 // register this example so it can be created by type name
-registerUnitType("humbug", ExampleSoldier);
+registerUnitType("humbug_2", ExampleSoldier);

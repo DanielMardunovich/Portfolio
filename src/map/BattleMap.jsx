@@ -900,23 +900,32 @@ useEffect(() => {
           .map(u => ({ x: u.x, y: u.y }));
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
         setReachableTiles(tiles);
-        // Compute attack edge: tiles 1-away from any reachable tile (not in reachable set)
+        // Compute attack tiles: all tiles within `movingUnit.range` from any reachable tile
+        // (exclude tiles that are already reachable to avoid overlap)
         const reachableSet = new Set(tiles.map(t => `${t.x},${t.y}`));
-        const edge = [];
+        const attackSet = new Set();
+        const withinBounds = (x, y) => x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT;
+        const range = (unit?.range ?? movingUnit?.range ?? 1);
+
         for (const t of tiles) {
-          const neigh = [
-            { x: t.x + 1, y: t.y },
-            { x: t.x - 1, y: t.y },
-            { x: t.x, y: t.y + 1 },
-            { x: t.x, y: t.y - 1 }
-          ];
-          for (const n of neigh) {
-            if (n.x < 0 || n.y < 0 || n.x >= MAP_WIDTH || n.y >= MAP_HEIGHT) continue;
-            const key = `${n.x},${n.y}`;
-            if (reachableSet.has(key)) continue;
-            if (!edge.some(e => e.x === n.x && e.y === n.y)) edge.push(n);
+          // iterate over a diamond (Manhattan distance) of radius `range`
+          for (let dx = -range; dx <= range; dx++) {
+            const maxDy = range - Math.abs(dx);
+            for (let dy = -maxDy; dy <= maxDy; dy++) {
+              const nx = t.x + dx;
+              const ny = t.y + dy;
+              if (!withinBounds(nx, ny)) continue;
+              const key = `${nx},${ny}`;
+              if (reachableSet.has(key)) continue; // skip tiles you can move to
+              attackSet.add(key);
+            }
           }
         }
+
+        const edge = Array.from(attackSet).map(k => {
+          const [x, y] = k.split(",").map(Number);
+          return { x, y };
+        });
         setAttackTiles(edge);
         // Close menu
         setMenuUnit(null);
