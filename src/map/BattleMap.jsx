@@ -497,27 +497,53 @@ export default function BattleMap() {
           continue;
         }
 
-        // Find best tile closest to friendly units
+        // Find best tile. Prefer reachable tiles that allow attacking a friendly after moving.
         let bestTile = null;
         let bestDistance = Infinity;
         let bestCost = Infinity;
+        let attackTargetId = null;
 
         const aliveFriendliesForRange = friendlyUnits.filter(f => !f.isDead);
+
+        // Look for reachable tiles that place the enemy within attack range of any alive friendly
+        const attackOptions = [];
         for (const tile of reachable) {
+          for (const f of aliveFriendliesForRange) {
+            const d = Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y);
+            if (d <= enemy.range) {
+              attackOptions.push({ tile, target: f, cost: tile.cost });
+            }
+          }
+        }
+
+        if (attackOptions.length > 0) {
+          // Pick cheapest option, tiebreaker by proximity to enemy
+          attackOptions.sort((a, b) => a.cost - b.cost || (Math.abs(a.target.x - enemy.x) + Math.abs(a.target.y - enemy.y)) - (Math.abs(b.target.x - enemy.x) + Math.abs(b.target.y - enemy.y)));
+          bestTile = attackOptions[0].tile;
+          attackTargetId = attackOptions[0].target.id;
+        } else {
+          // No direct attack move available; pick tile that minimizes distance to nearest alive friendly
           if (aliveFriendliesForRange.length === 0) {
+            // No alive friendlies - mark acted
+            setEnemyUnits(units => 
+              units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u)
+            );
             continue;
           }
-          const minDistanceToFriendly = Math.min(
-            ...aliveFriendliesForRange.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
-          );
 
-          if (
-            minDistanceToFriendly < bestDistance ||
-            (minDistanceToFriendly === bestDistance && tile.cost < bestCost)
-          ) {
-            bestDistance = minDistanceToFriendly;
-            bestCost = tile.cost;
-            bestTile = tile;
+          for (const tile of reachable) {
+            const minDistanceToFriendly = Math.min(
+              ...aliveFriendliesForRange.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
+            );
+
+            if (
+              minDistanceToFriendly < bestDistance ||
+              (minDistanceToFriendly === bestDistance && tile.cost < bestCost)
+            ) {
+              bestDistance = minDistanceToFriendly;
+              bestCost = tile.cost;
+              bestTile = tile;
+            }
           }
         }
 
@@ -616,6 +642,15 @@ export default function BattleMap() {
         // Animate movement along path
         await new Promise(resolve => {
           animateEnemyMovement(enemy, path, () => {
+            // If we moved to attack, apply damage to the target (if still present and alive)
+            if (attackTargetId) {
+              setFriendlyUnits(units => units.map(u => {
+                if (u.id !== attackTargetId) return u;
+                const newHp = (u.hp ?? 0) - enemy.atk;
+                return { ...u, hp: newHp, isDead: newHp <= 0, hasActed: newHp <= 0 ? true : u.hasActed };
+              }));
+            }
+
             // Mark as acted after animation
             setEnemyUnits(units => 
               units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u)
