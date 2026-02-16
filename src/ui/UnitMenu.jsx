@@ -80,15 +80,7 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
             disabled={unit.hasActed}
           >
             <span className="menu-icon">→</span>
-            <span>Move</span>
-          </button>
-          <button 
-            className="unit-menu-option"
-            onClick={() => handleAction("attack")}
-            disabled={unit.hasActed}
-          >
-            <span className="menu-icon">⚔</span>
-            <span>Attack</span>
+            <span>Act</span>
           </button>
           <button 
             className="unit-menu-option"

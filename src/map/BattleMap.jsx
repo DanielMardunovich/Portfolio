@@ -127,6 +127,7 @@ export default function BattleMap() {
   const enemyTurnHandledRef = useRef(false);
   const isAnimatingEnemyRef = useRef(false);
   const enemyAnimationTimeoutRef = useRef(null);
+  const friendlyAnimationTimeoutRef = useRef(null);
 
   // Helper function to clear move mode state
   const clearMoveMode = () => {
@@ -534,6 +535,47 @@ export default function BattleMap() {
     moveStep();
   };
 
+  // Animate friendly (player) unit along path
+  const animateFriendlyMovement = (unit, path, onComplete) => {
+    if (!path || path.length <= 1) {
+      onComplete();
+      return;
+    }
+
+    let stepIndex = 1;
+
+    const moveStep = () => {
+      if (stepIndex >= path.length) {
+        onComplete();
+        return;
+      }
+
+      const nextPos = path[stepIndex];
+      let canMove = true;
+      setFriendlyUnits(units => {
+        // Check if any other friendly occupies the next position (ignore dead)
+        const isOccupiedByFriendly = units.some(u => u.id !== unit.id && u.x === nextPos.x && u.y === nextPos.y);
+        const isOccupiedByEnemy = (enemyUnits || []).some(e => !e.isDead && e.x === nextPos.x && e.y === nextPos.y);
+        if (isOccupiedByFriendly || isOccupiedByEnemy) {
+          canMove = false;
+          return units;
+        }
+        return units.map(u => u.id === unit.id ? { ...u, x: nextPos.x, y: nextPos.y } : u);
+      });
+
+      if (!canMove) {
+        setFriendlyUnits(units => units.map(u => u.id === unit.id ? { ...u, hasActed: true } : u));
+        onComplete();
+        return;
+      }
+
+      stepIndex++;
+      friendlyAnimationTimeoutRef.current = setTimeout(moveStep, ENEMY_MOVE_DELAY_MS);
+    };
+
+    moveStep();
+  };
+
   // Process enemy turns one at a time with animation
   useEffect(() => {
     if (phase !== PHASES.MAP_IDLE) return;
@@ -562,26 +604,7 @@ export default function BattleMap() {
       const enemiesToMove = enemyUnits.filter(e => !e.hasActed && !e.isDead);
       
       for (const enemy of enemiesToMove) {
-        // If any friendly is within this enemy's attack range, attack and skip movement
-        const aliveFriendliesNow = friendlyUnits.filter(f => !f.isDead);
-        const targetInRange = aliveFriendliesNow.find(f => Math.abs(f.x - enemy.x) + Math.abs(f.y - enemy.y) <= enemy.range);
-        if (targetInRange) {
-          // Apply damage to the friendly unit
-          setFriendlyUnits(units => units.map(u => {
-            if (u.id !== targetInRange.id) return u;
-            const newHp = (u.hp ?? 0) - enemy.atk;
-            return { ...u, hp: newHp, isDead: newHp <= 0, hasActed: newHp <= 0 ? true : u.hasActed };
-          }));
-
-          triggerDamage(targetInRange.id, enemy.atk);
-
-          // Mark enemy as acted
-          setEnemyUnits(units => units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u));
-
-          // Small delay to separate actions visually
-          await new Promise(resolve => setTimeout(resolve, ENEMY_TURN_DELAY_MS));
-          continue; // skip movement for this enemy
-        }
+        
 
         // Get all occupied positions (excluding current enemy)
         const occupied = [...friendlyUnits, ...enemyUnits]
@@ -782,6 +805,10 @@ export default function BattleMap() {
         clearTimeout(enemyAnimationTimeoutRef.current);
         enemyAnimationTimeoutRef.current = null;
       }
+      if (friendlyAnimationTimeoutRef.current) {
+        clearTimeout(friendlyAnimationTimeoutRef.current);
+        friendlyAnimationTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -930,19 +957,12 @@ useEffect(() => {
           return;
         }
 
-        // Move unit to destination
-        const destination = path[path.length - 1];
-        
-        setFriendlyUnits(units => 
-          units.map(u => 
-            u.id === movingUnit.id 
-              ? { ...u, x: destination.x, y: destination.y, hasActed: true }
-              : u
-          )
-        );
-        
-        // Exit move mode
-        clearMoveMode();
+        // Animate movement to destination (same as AI)
+        animateFriendlyMovement(movingUnit, path, () => {
+          // Ensure unit is marked as acted after animation
+          setFriendlyUnits(units => units.map(u => u.id === movingUnit.id ? { ...u, hasActed: true } : u));
+          clearMoveMode();
+        });
       } else {
         // Clicked outside reachable area - cancel move mode
         clearMoveMode();
@@ -989,11 +1009,39 @@ useEffect(() => {
         });
 
         if (attackTile) {
-          // Move the unit to the attack tile (instant) and then attack
-          setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, x: attackTile.x, y: attackTile.y, hasActed: true } : u));
-          applyDamageToEnemy(unit.id, movingUnit.atk);
-          triggerDamage(unit.id, movingUnit.atk);
-          clearMoveMode();
+          // Move the unit to the attack tile (animate), then attack after movement completes
+          const occupied = [...friendlyUnits, ...enemyUnits]
+            .filter(u => u.id !== movingUnit.id)
+            .map(u => ({ x: u.x, y: u.y }));
+
+          const path = findPath(
+            movingUnit.x,
+            movingUnit.y,
+            attackTile.x,
+            attackTile.y,
+            mapRef.current,
+            movingUnit.move,
+            occupied
+          );
+
+          if (!path || path.length <= 1) {
+            // fallback: instant move and attack
+            setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, x: attackTile.x, y: attackTile.y, hasActed: true } : u));
+            applyDamageToEnemy(unit.id, movingUnit.atk);
+            triggerDamage(unit.id, movingUnit.atk);
+            clearMoveMode();
+            return;
+          }
+
+          animateFriendlyMovement(movingUnit, path, () => {
+            // After movement completes, apply damage
+            applyDamageToEnemy(unit.id, movingUnit.atk);
+            triggerDamage(unit.id, movingUnit.atk);
+            // Mark mover as acted
+            setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, hasActed: true } : u));
+            clearMoveMode();
+          });
+
           return;
         }
 
