@@ -63,7 +63,6 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
             <span className="menu-icon">⛓</span>
             <span>Link</span>
           </button>
-          
           <button 
             className="unit-menu-option"
             onClick={() => handleAction("info")}
@@ -83,7 +82,6 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
             <span className="menu-icon">→</span>
             <span>Move</span>
           </button>
-          
           <button 
             className="unit-menu-option"
             onClick={() => handleAction("attack")}
@@ -92,7 +90,14 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
             <span className="menu-icon">⚔</span>
             <span>Attack</span>
           </button>
-          
+          <button 
+            className="unit-menu-option"
+            onClick={() => handleAction("wait")}
+            disabled={unit.hasActed}
+          >
+            <span className="menu-icon">⏳</span>
+            <span>Wait</span>
+          </button>
           <button 
             className="unit-menu-option"
             onClick={() => handleAction("info")}

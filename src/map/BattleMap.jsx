@@ -620,15 +620,12 @@ useEffect(() => {
         // Enter move mode
         setMoveMode(true);
         setMovingUnit(unit);
-        
         // Calculate reachable tiles using A*
         const occupied = [...friendlyUnits, ...enemyUnits]
           .filter(u => u.id !== unit.id)
           .map(u => ({ x: u.x, y: u.y }));
-        
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
         setReachableTiles(tiles);
-        
         // Close menu
         setMenuUnit(null);
         setMenuPosition(null);
@@ -636,14 +633,22 @@ useEffect(() => {
       case "attack":
         // TODO: Implement attack functionality
         break;
+      case "wait":
+        // End unit's turn (same as after move)
+        unit.hasActed = true;
+        setMenuUnit(null);
+        setMenuPosition(null);
+        // Check if all friendly units have acted, then end turn
+        if (friendlyUnits.every(u => u.hasActed)) {
+          setTurn(TURN.ENEMY);
+          clearMoveMode && clearMoveMode();
+        }
+        break;
       case "info":
         // Show portfolio info panel
-        // Example: If the unit is friendly, show a project; if enemy, show contact info
         if (unit.faction === "friendly") {
-          // Map unit to a project (for demo, just use first project)
           setInfoPanelProject(portfolioProjects[0]);
         } else {
-          // Map enemy to contact info (for demo, just use first contact method)
           setInfoPanelProject(contactMethods[0]);
         }
         setInfoPanelOpen(true);
