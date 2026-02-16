@@ -386,13 +386,27 @@ export default function BattleMap() {
       }
 
       const nextPos = path[stepIndex];
-      setEnemyUnits(units => 
-        units.map(u => 
-          u.id === enemy.id 
+      let canMove = true;
+      setEnemyUnits(units => {
+        // Check if any other enemy occupies the next position
+        const isOccupied = units.some(u => u.id !== enemy.id && u.x === nextPos.x && u.y === nextPos.y);
+        if (isOccupied) {
+          canMove = false;
+          return units;
+        }
+        return units.map(u =>
+          u.id === enemy.id
             ? { ...u, x: nextPos.x, y: nextPos.y }
             : u
-        )
-      );
+        );
+      });
+
+      if (!canMove) {
+        // Mark as acted and stop movement if blocked
+        setEnemyUnits(units => units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u));
+        onComplete();
+        return;
+      }
 
       stepIndex++;
       enemyAnimationTimeoutRef.current = setTimeout(moveStep, ENEMY_MOVE_DELAY_MS);
