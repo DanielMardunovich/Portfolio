@@ -75,6 +75,18 @@ export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOf
     const drawX = x * TILE_SIZE + (offset.dx || 0);
     const drawY = y * TILE_SIZE + (offset.dy || 0);
 
+    // Draw faction highlight behind unit (green for friendly, red for enemy)
+    if (u.faction) {
+      const isFriendly = u.faction === "friendly";
+      ctx.save();
+      ctx.fillStyle = isFriendly ? "rgba(50,220,100,0.12)" : "rgba(220,60,60,0.12)";
+      ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+      ctx.strokeStyle = isFriendly ? "rgba(50,220,100,0.8)" : "rgba(220,60,60,0.8)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(drawX + 1, drawY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+      ctx.restore();
+    }
+
     // Support two sprite formats:
     // - tileset coords: { sx, sy } drawn from the `sprites` tilesheet
     // - standalone image: { src } drawn from a cached Image object

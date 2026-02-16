@@ -18,13 +18,13 @@ export default class ExampleSoldier extends UnitBase {
         "/GameLogos/logo2.png",
       ],
       info: opts.info || {
-        name: "Santiago",
-        headline: "Project name or whatever",
-        text: `Hello, this is the info text for this unit. You can provide any description or details about the unit here, and it will show up in the info panel when the unit is selected. You can also include multiple images that will be displayed in the left column of the info panel. This is just an example unit to demonstrate how to create a new unit type by extending the UnitBase class and registering it with a unique type name.`,
+        name: "Mohammed",
+        headline: "Im a cool dood, just a lil boi boi",
+        text: `Hi, im mohammed and im scared of small birds`,
       }
     });
   }
 }
 
 // register this example so it can be created by type name
-registerUnitType("Santiago", ExampleSoldier);
+registerUnitType("Mohammed", ExampleSoldier);

@@ -19,8 +19,8 @@ export default class ExampleSoldier extends UnitBase {
       ],
       info: opts.info || {
         name: "Daniel",
-        headline: "Project name or whatever",
-        text: `Hello, this is the info text for this unit. You can provide any description or details about the unit here, and it will show up in the info panel when the unit is selected. You can also include multiple images that will be displayed in the left column of the info panel. This is just an example unit to demonstrate how to create a new unit type by extending the UnitBase class and registering it with a unique type name.`,
+        headline: "The coolest dude in the world",
+        text: `Hi, I'm Daniel and I like to code cool games and make awesome portfolios!`,
       }
     });
   }
