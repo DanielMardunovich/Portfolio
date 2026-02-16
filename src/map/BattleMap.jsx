@@ -142,7 +142,8 @@ export default function BattleMap() {
       x = screenX - menuWidth - padding;
     }
     if (y + menuHeight > window.innerHeight) {
-      y = window.innerHeight - menuHeight - padding;
+      // Move menu further up by increasing offset
+      y = window.innerHeight - menuHeight - (padding * 3);
     }
     if (y < padding) {
       y = padding;
