@@ -20,6 +20,7 @@ import {
   drawCursor,
   drawSelection,
   drawMovementRange,
+  drawColoredRange,
   drawGrid,
   drawPath
 } from "./battleRender";
@@ -72,6 +73,9 @@ export default function BattleMap() {
   const [movingUnit, setMovingUnit] = useState(null);
   const [reachableTiles, setReachableTiles] = useState([]);
   const [currentPath, setCurrentPath] = useState(null);
+  const [enemySelectedUnit, setEnemySelectedUnit] = useState(null);
+  const [enemyReachableTiles, setEnemyReachableTiles] = useState([]);
+  const [attackTiles, setAttackTiles] = useState([]);
   // InfoPanel state for portfolio project info
   const [infoPanelProject, setInfoPanelProject] = useState(null);
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
@@ -125,6 +129,7 @@ export default function BattleMap() {
     setMovingUnit(null);
     setReachableTiles([]);
     setCurrentPath(null);
+    setAttackTiles([]);
     selectedUnitRef.current = null;
   };
 
@@ -221,19 +226,30 @@ export default function BattleMap() {
       drawUnits(ctx, enemyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current);
     }
 
-    // Only show movement range and selection in move mode
+    drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
+    drawGrid(ctx, viewRef.current.tilesX, viewRef.current.tilesY);
+
+    // Draw movement overlays last so they appear above everything else.
     if (moveMode && movingUnit) {
-      drawMovementRange(ctx, tilesetRef.current, reachableTiles, cameraRef.current);
+      // Player movement tiles: blue
+      drawColoredRange(ctx, reachableTiles, cameraRef.current, "rgba(0,100,255,0.35)");
+      // Attack edge tiles: red, drawn on top of movement
+      if (attackTiles && attackTiles.length > 0) {
+        drawColoredRange(ctx, attackTiles, cameraRef.current, "rgba(255,0,0,0.45)");
+      }
+
       drawSelection(ctx, tilesetRef.current, movingUnit, cameraRef.current);
-      
+
       // Draw path with arrows
       if (currentPath && currentPath.length > 1) {
         drawPath(ctx, tilesetRef.current, currentPath, cameraRef.current, getArrowTileForPath);
       }
     }
 
-    drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
-    drawGrid(ctx, viewRef.current.tilesX, viewRef.current.tilesY);
+    // Draw enemy selected movement range last (red overlay)
+    if (enemySelectedUnit && enemyReachableTiles && enemyReachableTiles.length > 0) {
+      drawColoredRange(ctx, enemyReachableTiles, cameraRef.current, "rgba(255,0,0,0.45)");
+    }
   };
 
   useEffect(() => {
@@ -259,7 +275,6 @@ export default function BattleMap() {
       // For vertical sweep: maxDelay is (view.tilesX - 1) * staggerMs
       const maxDelay = (view.tilesX - 1) * staggerMs;
       mapRevealTotalRef.current = maxDelay + dropDurationMs;
-
       const animateReveal = (now) => {
         mapRevealTimeRef.current = now - mapRevealStartRef.current;
         redraw();
@@ -274,7 +289,6 @@ export default function BattleMap() {
 
         mapRevealRafRef.current = requestAnimationFrame(animateReveal);
       };
-
       if (mapRevealRafRef.current) {
         cancelAnimationFrame(mapRevealRafRef.current);
       }
@@ -344,7 +358,7 @@ export default function BattleMap() {
 
   useEffect(() => {
     redraw();
-  }, [friendlyUnits, enemyUnits, moveMode, currentPath]);
+  }, [friendlyUnits, enemyUnits, moveMode, currentPath, enemySelectedUnit, enemyReachableTiles, attackTiles]);
 
   useEffect(() => {
     if (phase !== PHASES.MAP_IDLE) return;
@@ -389,9 +403,11 @@ export default function BattleMap() {
       const nextPos = path[stepIndex];
       let canMove = true;
       setEnemyUnits(units => {
-        // Check if any other enemy occupies the next position
-        const isOccupied = units.some(u => u.id !== enemy.id && u.x === nextPos.x && u.y === nextPos.y);
-        if (isOccupied) {
+        // Check if any other enemy occupies the next position (ignore dead)
+        const isOccupiedByEnemy = units.some(u => u.id !== enemy.id && u.x === nextPos.x && u.y === nextPos.y);
+        // Check if any friendly occupies the next position (ignore dead)
+        const isOccupiedByFriendly = (friendlyUnits || []).some(f => !f.isDead && f.x === nextPos.x && f.y === nextPos.y);
+        if (isOccupiedByEnemy || isOccupiedByFriendly) {
           canMove = false;
           return units;
         }
@@ -428,7 +444,8 @@ export default function BattleMap() {
     
     enemyTurnHandledRef.current = true;
 
-    if (!mapRef.current || friendlyUnits.length === 0 || enemyUnits.length === 0) {
+    const aliveEnemies = enemyUnits.filter(e => !e.isDead);
+    if (!mapRef.current || friendlyUnits.length === 0 || aliveEnemies.length === 0) {
       setTurn(TURN.PLAYER);
       setFriendlyUnits(units => units.map(u => ({ ...u, hasActed: false })));
       setEnemyUnits(units => units.map(u => ({ ...u, hasActed: false })));
@@ -439,7 +456,7 @@ export default function BattleMap() {
     const processEnemies = async () => {
       isAnimatingEnemyRef.current = true;
       
-      const enemiesToMove = enemyUnits.filter(e => !e.hasActed);
+      const enemiesToMove = enemyUnits.filter(e => !e.hasActed && !e.isDead);
       
       for (const enemy of enemiesToMove) {
         // Get all occupied positions (excluding current enemy)
@@ -636,11 +653,29 @@ useEffect(() => {
         setMoveMode(true);
         setMovingUnit(unit);
         // Calculate reachable tiles using A*
-        const occupied = [...friendlyUnits, ...enemyUnits]
+        const occupied = [...friendlyUnits, ...enemyUnits.filter(e => !e.isDead)]
           .filter(u => u.id !== unit.id)
           .map(u => ({ x: u.x, y: u.y }));
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
         setReachableTiles(tiles);
+        // Compute attack edge: tiles 1-away from any reachable tile (not in reachable set)
+        const reachableSet = new Set(tiles.map(t => `${t.x},${t.y}`));
+        const edge = [];
+        for (const t of tiles) {
+          const neigh = [
+            { x: t.x + 1, y: t.y },
+            { x: t.x - 1, y: t.y },
+            { x: t.x, y: t.y + 1 },
+            { x: t.x, y: t.y - 1 }
+          ];
+          for (const n of neigh) {
+            if (n.x < 0 || n.y < 0 || n.x >= MAP_WIDTH || n.y >= MAP_HEIGHT) continue;
+            const key = `${n.x},${n.y}`;
+            if (reachableSet.has(key)) continue;
+            if (!edge.some(e => e.x === n.x && e.y === n.y)) edge.push(n);
+          }
+        }
+        setAttackTiles(edge);
         // Close menu
         setMenuUnit(null);
         setMenuPosition(null);
@@ -682,8 +717,11 @@ useEffect(() => {
       const isReachable = reachableTiles.some(t => t.x === tile.x && t.y === tile.y);
       
       if (isReachable) {
-        // Calculate path from unit to hovered tile
-        const path = findPath(movingUnit.x, movingUnit.y, tile.x, tile.y, mapRef.current, movingUnit.move);
+        // Calculate path from unit to hovered tile (respect occupied tiles)
+        const occupied = [...friendlyUnits, ...enemyUnits]
+          .filter(u => u.id !== movingUnit.id)
+          .map(u => ({ x: u.x, y: u.y }));
+        const path = findPath(movingUnit.x, movingUnit.y, tile.x, tile.y, mapRef.current, movingUnit.move, occupied);
         setCurrentPath(path);
       } else {
         setCurrentPath(null);
@@ -692,18 +730,26 @@ useEffect(() => {
   };
 
   const handleTileClick = (tile) => {
+    // Clear enemy selection when clicking any tile (including when cancelling)
+    setEnemySelectedUnit(null);
+    setEnemyReachableTiles([]);
+
     if (moveMode && movingUnit) {
       // Check if clicked tile is reachable
       const isReachable = reachableTiles.some(t => t.x === tile.x && t.y === tile.y);
 
       if (isReachable) {
+        const occupied = [...friendlyUnits, ...enemyUnits]
+          .filter(u => u.id !== movingUnit.id)
+          .map(u => ({ x: u.x, y: u.y }));
         const path = findPath(
           movingUnit.x,
           movingUnit.y,
           tile.x,
           tile.y,
           mapRef.current,
-          movingUnit.move
+          movingUnit.move,
+          occupied
         );
 
         if (!path || path.length <= 1) {
@@ -738,7 +784,60 @@ useEffect(() => {
         setBubbleUnitId(null);
       }
       const position = calculateMenuPosition(screenX, screenY, unit.faction);
-      
+      // If in move mode and a player is moving, handle attack behavior
+      if (moveMode && movingUnit && unit.faction === FACTION.ENEMY) {
+        // Distance from current unit position
+        const dist = Math.abs(movingUnit.x - unit.x) + Math.abs(movingUnit.y - unit.y);
+
+        // Helper to apply damage to enemy and mark dead (don't remove)
+        const applyDamageToEnemy = (enemyId, damage) => {
+          setEnemyUnits(prev => prev.map(e => {
+            if (e.id !== enemyId) return e;
+            const newHp = (e.hp ?? 0) - damage;
+            return { ...e, hp: newHp, isDead: newHp <= 0 };
+          }));
+        };
+
+        // Attack in place if within range
+        if (dist <= movingUnit.range) {
+          applyDamageToEnemy(unit.id, movingUnit.atk);
+          // Mark mover as acted and exit move mode
+          setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, hasActed: true } : u));
+          clearMoveMode();
+          return;
+        }
+
+        // Otherwise, see if any reachable tile allows an attack (tile within range of enemy)
+        const attackTile = (reachableTiles || []).find(t => {
+          const d = Math.abs(t.x - unit.x) + Math.abs(t.y - unit.y);
+          return d <= movingUnit.range;
+        });
+
+        if (attackTile) {
+          // Move the unit to the attack tile (instant) and then attack
+          setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, x: attackTile.x, y: attackTile.y, hasActed: true } : u));
+          applyDamageToEnemy(unit.id, movingUnit.atk);
+          clearMoveMode();
+          return;
+        }
+
+        // No attack possible from move - fallthrough to showing menu
+      }
+
+      // If an enemy unit was clicked (not handled above), compute and show its reachable tiles in red.
+      if (unit.faction === FACTION.ENEMY) {
+        const occupied = [...friendlyUnits, ...enemyUnits]
+          .filter(u => u.id !== unit.id)
+          .map(u => ({ x: u.x, y: u.y }));
+        const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
+        setEnemyReachableTiles(tiles);
+        setEnemySelectedUnit(unit);
+      } else {
+        // Clicking a friendly unit should clear any enemy selection
+        setEnemySelectedUnit(null);
+        setEnemyReachableTiles([]);
+      }
+
       setMenuUnit(unit);
       setMenuPosition(position);
       selectedUnitRef.current = unit;

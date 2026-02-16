@@ -3,7 +3,7 @@ import { getTileWalkCost } from "./pathValidation";
 /**
  * A* pathfinding implementation for tactical movement
  */
-export function findPath(startX, startY, endX, endY, map, maxCost) {
+export function findPath(startX, startY, endX, endY, map, maxCost, occupiedPositions = []) {
   const width = map[0].length;
   const height = map.length;
 
@@ -13,6 +13,7 @@ export function findPath(startX, startY, endX, endY, map, maxCost) {
   }
 
   const key = (x, y) => `${x},${y}`;
+  const occupiedSet = new Set((occupiedPositions || []).map(p => key(p.x, p.y)));
   
   // Node structure: { x, y, g (cost from start), h (heuristic), f (total), parent }
   const openSet = new Set();
@@ -70,6 +71,8 @@ export function findPath(startX, startY, endX, endY, map, maxCost) {
       if (x < 0 || x >= width || y < 0 || y >= height) continue;
       
       const neighborKey = key(x, y);
+      // If neighbor is occupied (and not the starting tile), skip it
+      if (occupiedSet.has(neighborKey) && !(x === startX && y === startY)) continue;
       if (closedSet.has(neighborKey)) continue;
       
       const tileCost = getTileWalkCost(map[y][x]);

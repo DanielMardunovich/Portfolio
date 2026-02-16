@@ -44,19 +44,20 @@ export function attachBattleInput({
     const enemyUnit = enemyUnits.find(u => u.x === tile.x && u.y === tile.y);
     const unit = friendlyUnit || enemyUnit;
     
-    // In move mode, clicking a tile moves the unit
-    if (moveMode && !unit) {
-      if (onTileClick) {
-        onTileClick(tile);
-      }
+    // If no unit was clicked, always notify tile click (used to clear selections
+    // or to move when in moveMode).
+    if (!unit) {
+      if (onTileClick) onTileClick(tile);
+      selectedUnitRef.current = null;
+      redraw();
       return;
     }
-    
+
     // Otherwise, handle unit clicks
     if (unit && onUnitClick) {
       onUnitClick(unit, e.clientX, e.clientY);
     }
-    
+
     selectedUnitRef.current = unit || null;
     redraw();
   };
@@ -73,19 +74,22 @@ export function attachBattleInput({
       
       cursorRef.current = tile;
       
-      // In move mode, tapping a tile moves the unit
-      if (moveMode && !unit) {
-        if (onTileClick) {
-          onTileClick(tile);
-        }
+      // If no unit was tapped, always notify tile click (used to clear selections
+      // or to move when in moveMode).
+      if (!unit) {
+        if (onTileClick) onTileClick(tile);
+        cursorRef.current = tile;
+        selectedUnitRef.current = null;
+        redraw();
         return;
       }
-      
-      // Otherwise, handle unit clicks
+
+      // Otherwise, handle unit taps
       if (unit && onUnitClick) {
         onUnitClick(unit, touch.clientX, touch.clientY);
       }
-      
+
+      cursorRef.current = tile;
       selectedUnitRef.current = unit || null;
       redraw();
     }

@@ -78,6 +78,13 @@ export function drawUnits(ctx, units, sprites, cam, view) {
       TILE_SIZE,
       TILE_SIZE
     );
+    // If unit is dead, draw a semi-transparent gray overlay so it appears grayed out
+    if (u.isDead) {
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      ctx.restore();
+    }
   });
 }
 
@@ -112,6 +119,19 @@ export function drawSelection(ctx, tileset, unit, cam) {
 export function drawMovementRange(ctx, tileset, tiles, cam) {
   const sprite = MOUSE_TILES.find(t => t.id === "tilesquare");
   tiles.forEach(t => drawOverlayTile(ctx, tileset, sprite, t.x, t.y, cam));
+}
+
+export function drawColoredRange(ctx, tiles, cam, color = "rgba(255,0,0,0.45)") {
+  if (!tiles || tiles.length === 0) return;
+  ctx.save();
+  ctx.fillStyle = color;
+  tiles.forEach(t => {
+    const sx = t.x - cam.x;
+    const sy = t.y - cam.y;
+    if (sx < 0 || sy < 0) return;
+    ctx.fillRect(sx * TILE_SIZE, sy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  });
+  ctx.restore();
 }
 
 export function drawPath(ctx, tileset, path, cam, getArrowTileFn) {
