@@ -15,7 +15,17 @@ export default class UnitBase {
   } = {}) {
     this.id = id;
     this.faction = faction;
-    this.sprite = sprite || UNIT_SPRITES.FRIENDLY_SOLDIER;
+    // Allow sprite to be provided either as a sprite-sheet coordinate ({sx, sy})
+    // or as a string filepath ("/path/to/image.png"). Normalize to an object:
+    // - { sx, sy } for tileset sprites
+    // - { src: string } for standalone images
+    if (typeof sprite === "string") {
+      this.sprite = { src: sprite };
+    } else if (sprite && (sprite.sx !== undefined || sprite.sy !== undefined)) {
+      this.sprite = sprite;
+    } else {
+      this.sprite = UNIT_SPRITES.FRIENDLY_SOLDIER;
+    }
     this.hp = hp;
     this.atk = atk;
     this.move = move;

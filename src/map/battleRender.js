@@ -1,5 +1,8 @@
 import { TILE_SIZE, TILES, MOUSE_TILES, WALK_ARROW_TILES } from "./wfc/tiles";
 
+// Cache for loaded standalone unit images (keyed by src)
+const unitImageCache = new Map();
+
 export function drawGrid(ctx, w, h) {
   ctx.save();
   ctx.strokeStyle = "rgba(0,0,0,0.15)";
@@ -72,17 +75,33 @@ export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOf
     const drawX = x * TILE_SIZE + (offset.dx || 0);
     const drawY = y * TILE_SIZE + (offset.dy || 0);
 
-    ctx.drawImage(
-      sprites,
-      u.sprite.sx * TILE_SIZE,
-      u.sprite.sy * TILE_SIZE,
-      TILE_SIZE,
-      TILE_SIZE,
-      drawX,
-      drawY,
-      TILE_SIZE,
-      TILE_SIZE
-    );
+    // Support two sprite formats:
+    // - tileset coords: { sx, sy } drawn from the `sprites` tilesheet
+    // - standalone image: { src } drawn from a cached Image object
+    if (u.sprite && u.sprite.src) {
+      let img = unitImageCache.get(u.sprite.src);
+      if (!img) {
+        img = new Image();
+        img.src = u.sprite.src;
+        unitImageCache.set(u.sprite.src, img);
+      }
+      if (img.complete && img.naturalWidth > 0) {
+        // Draw the image centered in the tile and scaled to fit
+        ctx.drawImage(img, drawX, drawY, TILE_SIZE, TILE_SIZE);
+      }
+    } else {
+      ctx.drawImage(
+        sprites,
+        u.sprite.sx * TILE_SIZE,
+        u.sprite.sy * TILE_SIZE,
+        TILE_SIZE,
+        TILE_SIZE,
+        drawX,
+        drawY,
+        TILE_SIZE,
+        TILE_SIZE
+      );
+    }
 
     // Draw hit flash overlay if present (opacity provided in hitMap)
     if (hitMap && hitMap.has(u.id)) {
