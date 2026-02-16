@@ -364,9 +364,12 @@ export default function BattleMap() {
     if (phase !== PHASES.MAP_IDLE) return;
     if (turn !== TURN.PLAYER) return;
     if (moveMode || movingUnit) return;
-    if (!mapRef.current || friendlyUnits.length === 0) return;
+    if (!mapRef.current) return;
 
-    const allFriendlyCannotMove = friendlyUnits.every(unit => {
+    const aliveFriendlies = friendlyUnits.filter(f => !f.isDead);
+    if (aliveFriendlies.length === 0) return;
+
+    const allFriendlyCannotMove = aliveFriendlies.every(unit => {
       if (unit.hasActed) return true;
 
       const occupied = [...friendlyUnits, ...enemyUnits]
@@ -445,10 +448,11 @@ export default function BattleMap() {
     enemyTurnHandledRef.current = true;
 
     const aliveEnemies = enemyUnits.filter(e => !e.isDead);
-    if (!mapRef.current || friendlyUnits.length === 0 || aliveEnemies.length === 0) {
+    const aliveFriendlies = friendlyUnits.filter(f => !f.isDead);
+    if (!mapRef.current || aliveFriendlies.length === 0 || aliveEnemies.length === 0) {
       setTurn(TURN.PLAYER);
-      setFriendlyUnits(units => units.map(u => ({ ...u, hasActed: false })));
-      setEnemyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+      setFriendlyUnits(units => units.map(u => u.isDead ? { ...u, hasActed: true } : { ...u, hasActed: false }));
+      setEnemyUnits(units => units.map(u => u.isDead ? { ...u, hasActed: true } : { ...u, hasActed: false }));
       return;
     }
 
@@ -459,6 +463,25 @@ export default function BattleMap() {
       const enemiesToMove = enemyUnits.filter(e => !e.hasActed && !e.isDead);
       
       for (const enemy of enemiesToMove) {
+        // If any friendly is within this enemy's attack range, attack and skip movement
+        const aliveFriendliesNow = friendlyUnits.filter(f => !f.isDead);
+        const targetInRange = aliveFriendliesNow.find(f => Math.abs(f.x - enemy.x) + Math.abs(f.y - enemy.y) <= enemy.range);
+        if (targetInRange) {
+          // Apply damage to the friendly unit
+          setFriendlyUnits(units => units.map(u => {
+            if (u.id !== targetInRange.id) return u;
+            const newHp = (u.hp ?? 0) - enemy.atk;
+            return { ...u, hp: newHp, isDead: newHp <= 0, hasActed: newHp <= 0 ? true : u.hasActed };
+          }));
+
+          // Mark enemy as acted
+          setEnemyUnits(units => units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u));
+
+          // Small delay to separate actions visually
+          await new Promise(resolve => setTimeout(resolve, ENEMY_TURN_DELAY_MS));
+          continue; // skip movement for this enemy
+        }
+
         // Get all occupied positions (excluding current enemy)
         const occupied = [...friendlyUnits, ...enemyUnits]
           .filter(u => u.id !== enemy.id)
@@ -479,9 +502,13 @@ export default function BattleMap() {
         let bestDistance = Infinity;
         let bestCost = Infinity;
 
+        const aliveFriendliesForRange = friendlyUnits.filter(f => !f.isDead);
         for (const tile of reachable) {
+          if (aliveFriendliesForRange.length === 0) {
+            continue;
+          }
           const minDistanceToFriendly = Math.min(
-            ...friendlyUnits.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
+            ...aliveFriendliesForRange.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
           );
 
           if (
@@ -603,8 +630,8 @@ export default function BattleMap() {
 
       // All enemies moved, end turn
       isAnimatingEnemyRef.current = false;
-      setEnemyUnits(units => units.map(u => ({ ...u, hasActed: false })));
-      setFriendlyUnits(units => units.map(u => ({ ...u, hasActed: false })));
+      setEnemyUnits(units => units.map(u => u.isDead ? { ...u, hasActed: true } : { ...u, hasActed: false }));
+      setFriendlyUnits(units => units.map(u => u.isDead ? { ...u, hasActed: true } : { ...u, hasActed: false }));
       setTurn(TURN.PLAYER);
     };
 
@@ -649,6 +676,14 @@ useEffect(() => {
   const handleMenuSelect = (action, unit) => {
     switch(action) {
       case "move":
+        // If the unit is dead, force it to wait and do not enter move mode
+        if (unit.isDead) {
+          setFriendlyUnits(units => units.map(u => u.id === unit.id ? { ...u, hasActed: true } : u));
+          setMenuUnit(null);
+          setMenuPosition(null);
+          return;
+        }
+
         // Enter move mode
         setMoveMode(true);
         setMovingUnit(unit);
