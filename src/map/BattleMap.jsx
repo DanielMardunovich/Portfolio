@@ -560,7 +560,10 @@ export default function BattleMap() {
           canMove = false;
           return units;
         }
-        return units.map(u => u.id === unit.id ? { ...u, x: nextPos.x, y: nextPos.y } : u);
+        const updated = units.map(u => u.id === unit.id ? { ...u, x: nextPos.x, y: nextPos.y } : u);
+        // Also update the movingUnit state so the selection/render stays in sync
+        setMovingUnit(prev => prev && prev.id === unit.id ? { ...prev, x: nextPos.x, y: nextPos.y } : prev);
+        return updated;
       });
 
       if (!canMove) {
@@ -766,8 +769,14 @@ export default function BattleMap() {
         // Animate movement along path
         await new Promise(resolve => {
           animateEnemyMovement(enemy, path, () => {
+            // Ensure enemy is placed at destination after animation
+            const destination = (path && path.length) ? path[path.length - 1] : bestTile;
+            if (destination) {
+              setEnemyUnits(units => units.map(u => u.id === enemy.id ? { ...u, x: destination.x, y: destination.y } : u));
+            }
+
             // If we moved to attack, apply damage to the target (if still present and alive)
-              if (attackTargetId) {
+            if (attackTargetId) {
               setFriendlyUnits(units => units.map(u => {
                 if (u.id !== attackTargetId) return u;
                 const newHp = (u.hp ?? 0) - enemy.atk;
@@ -959,8 +968,9 @@ useEffect(() => {
 
         // Animate movement to destination (same as AI)
         animateFriendlyMovement(movingUnit, path, () => {
-          // Ensure unit is marked as acted after animation
-          setFriendlyUnits(units => units.map(u => u.id === movingUnit.id ? { ...u, hasActed: true } : u));
+          // Ensure unit is placed at destination and marked as acted after animation
+          const destination = path[path.length - 1];
+          setFriendlyUnits(units => units.map(u => u.id === movingUnit.id ? { ...u, x: destination.x, y: destination.y, hasActed: true } : u));
           clearMoveMode();
         });
       } else {
@@ -1034,11 +1044,11 @@ useEffect(() => {
           }
 
           animateFriendlyMovement(movingUnit, path, () => {
-            // After movement completes, apply damage
+            // After movement completes, ensure final position, then apply damage
+            const destination = path[path.length - 1];
+            setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, x: destination.x, y: destination.y, hasActed: true } : u));
             applyDamageToEnemy(unit.id, movingUnit.atk);
             triggerDamage(unit.id, movingUnit.atk);
-            // Mark mover as acted
-            setFriendlyUnits(prev => prev.map(u => u.id === movingUnit.id ? { ...u, hasActed: true } : u));
             clearMoveMode();
           });
 
