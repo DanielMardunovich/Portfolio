@@ -183,6 +183,21 @@ export default function BattleMap() {
     redraw();
   };
 
+  // Wait until visual animations (hit/shake/damage numbers) complete before proceeding
+  const waitForAnimationsThen = (cb) => {
+    const check = () => {
+      const hasHit = hitAnimationsRef.current && hitAnimationsRef.current.size > 0;
+      const hasShake = shakeRef.current && shakeRef.current.size > 0;
+      const hasDmg = damageNumbersRef.current && damageNumbersRef.current.length > 0;
+      if (hasHit || hasShake || hasDmg) {
+        requestAnimationFrame(check);
+      } else {
+        cb();
+      }
+    };
+    requestAnimationFrame(check);
+  };
+
   // Helper function to calculate menu position
   const calculateMenuPosition = (screenX, screenY, faction) => {
     const menuWidth = MENU_WIDTH;
@@ -462,10 +477,13 @@ export default function BattleMap() {
     });
 
     if (allFriendlyCannotMove) {
-      setTurn(TURN.ENEMY);
-      setMenuUnit(null);
-      setMenuPosition(null);
-      clearMoveMode();
+      // Wait for any pending visual animations (damage/shake) before switching to enemy turn
+      waitForAnimationsThen(() => {
+        setTurn(TURN.ENEMY);
+        setMenuUnit(null);
+        setMenuPosition(null);
+        clearMoveMode();
+      });
     }
   }, [phase, turn, friendlyUnits, enemyUnits, moveMode, movingUnit]);
 
@@ -844,8 +862,10 @@ useEffect(() => {
         setMenuPosition(null);
         // Check if all friendly units have acted, then end turn
         if (friendlyUnits.every(u => u.hasActed)) {
-          setTurn(TURN.ENEMY);
-          clearMoveMode && clearMoveMode();
+          waitForAnimationsThen(() => {
+            setTurn(TURN.ENEMY);
+            clearMoveMode && clearMoveMode();
+          });
         }
         break;
       case "info":
