@@ -167,6 +167,13 @@
   gap: 8px;
 }
 
+/* Preserve user line breaks in description text while still wrapping long lines */
+.portfolio-description {
+  white-space: pre-wrap; /* respect newlines and wrap */
+  word-break: break-word;
+  line-height: 1.4;
+}
+
 .info-stats-header {
   background: linear-gradient(180deg, #f4d03f 0%, #d4af37 100%);
   color: #2a2a2a;
