@@ -77,10 +77,10 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
           <div className="info-panel-body">
             {/* HERO SECTION */}
             <section className="hero container">
-              <div className="hero-image">
+              <div className="hero-image hero-full">
                 {heroSources.length > 0 ? (
                   <div className="slideshow">
-                    <img className="slide-img" src={heroSources[heroIndex]} alt={`${data.name || project?.title} slide-${heroIndex}`} />
+                    <img className="slide-img" src={heroSources[heroIndex]} alt={`slide-${heroIndex}`} />
                     {heroSources.length > 1 && (
                       <>
                         <div className="slide-controls">
@@ -99,10 +99,6 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
                   <div className="hero-placeholder">No image</div>
                 )}
               </div>
-              <div className="hero-content">
-                <h1>{data.name || project?.title}</h1>
-                {data.role && <div className="role-badge">{data.role}</div>}
-              </div>
             </section>
 
             {/* ROLE SUMMARY STRIP */}
@@ -115,26 +111,55 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
             {/* TWO-COLUMN SECTION */}
             <section className="two-column container">
               <div className="left">
-                <h2>Description</h2>
+                <h2>Project Overview</h2>
                 <p className="description-text">{data.description || data.text || "Description goes here."}</p>
               </div>
               <div className="right">
-                <h2>Responsibilities</h2>
-                <div className="responsibilities">
-                  {(data.responsibilities && data.responsibilities.length > 0) ? (
-                    data.responsibilities.map((r, i) => (
-                      <div className="resp-card" key={i}><h3>{r.title || `Item ${i+1}`}</h3><p>{r.text || r}</p></div>
-                    ))
-                  ) : (
-                    <div className="resp-card"><h3>AI Role</h3><p>Design and implement AI systems.</p></div>
-                  )}
+                <div className="project-details">
+                  <h2>Project Details</h2>
+                  <div className="details-list">
+                    {(() => {
+                      // Support two shapes for `data.details`:
+                      // - Array of { label, value }
+                      // - Object map { Label: value }
+                      let entries = [];
+                      if (Array.isArray(data.details)) {
+                        entries = data.details.map((d, i) => [d.label || d.name || `Item ${i+1}`, d.value ?? d.text ?? d]);
+                      } else {
+                        const detailsObj = data.details || {
+                          Category: data.category || "Group Project",
+                          Date: data.date || "",
+                          Duration: data.duration || "",
+                          "Group Size": data.groupSize || data.group_size || "",
+                          Position: data.position || data.role || "",
+                          Languages: (data.languages && Array.isArray(data.languages)) ? data.languages.join(", ") : (data.language || ""),
+                          Engine: data.engine || "",
+                          "Other Technologies": data.otherTech || data.other || (data.technologies && data.technologies.join(", ")) || ""
+                        };
+                        entries = Object.entries(detailsObj);
+                      }
+                      return entries.map(([k, v]) => v ? (
+                        <div className="detail-row" key={k}>
+                          <div className="detail-label">{k}</div>
+                          <div className="detail-value">{v}</div>
+                        </div>
+                      ) : null);
+                    })()}
+                  </div>
+                  <div className="detail-buttons">
+                    {data.codeUrl && (
+                      <a className="btn code" href={data.codeUrl} target="_blank" rel="noopener noreferrer">View Codebase</a>
+                    )}
+                    {data.downloadUrl && (
+                      <a className="btn download" href={data.downloadUrl}>Download Game</a>
+                    )}
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* AI IN ACTION (large GIF full width) */}
             <section className="media-full container">
-              <h2>In Action</h2>
               {data.gif ? (
                 <img src={data.gif} alt="demo" className="media-gif" />
               ) : (

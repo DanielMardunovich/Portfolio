@@ -21,18 +21,22 @@ export default class ThrallProject extends UnitBase {
   name: "Thrall",
   role: "AI Engineer",
   summary: "Developed core AI systems for crowd navigation and behavior using state trees in a large-scale emergent combat experience.",
+         // `details` can be an array of { label, value } to control the Project Details card
+         details: [
+           { label: "Date", value: "May 2025" },
+           { label: "Duration", value: "7 Weeks" },
+           { label: "Group Size", value: "16" },
+           { label: "Position", value: "AI Engineer" },
+           { label: "Languages", value: "C++" },
+           { label: "Engine", value: "Unreal" }
+         ],
   description: `Thrall is a first-person action game where the player embodies the fractured spirit of a fallen king, possessing enemies and uncovering lost memories through dynamic combat encounters.\n
 As the AI Engineer, I designed and implemented a scalable AI architecture using Unreal Engine State Trees to support complex, hierarchical behavior. The system enables enemies to react dynamically in combat while maintaining clear, maintainable logic structures.\n
 To support large-scale encounters, I implemented crowd-based navigation with local avoidance to ensure smooth multi-agent movement without collision artifacts. I also developed an object pooling system to reduce runtime allocations and optimize performance, allowing the game to sustain high AI counts while maintaining stable frame rates.`,
-  responsibilities: [
-    { title: "AI Behavior System", text: "Built a state-tree–based AI architecture to achieve complex, hierarchical agent behavior." },
-    { title: "Navigation & Avoidance", text: "Implemented crowd navigation so enemies avoid each other and traverse levels smoothly." },
-    { title: "Performance Optimization", text: "Created an object pool and optimized AI routines for real-time performance with many agents." }
-  ],
   gif: "ThrallImages/ThrallAIGif.gif",
   process: [
-    { src: "ThrallImages/StateTreePlanning.png", caption: "AI architecture and planning sketches" },
-    { src: "ThrallImages/AIStateTreeImplementation.png", caption: "State tree for enemy behaviors" },
+    { src: "ThrallImages/StateTreePlanning.png", caption: `This image shows the initial planning and architecture sketches for the AI state trees. \n I aimed to paint the general states and transitions for enemy behaviors.` },
+    { src: "ThrallImages/AIStateTreeImplementation.png", caption: `This image shows the implementation of the AI state tree for enemy behaviors. \n Each state represents a distinct behavior, and transitions define the conditions for switching between states.` },
     { src: "ThrallImages/process3.png", caption: "Prototype tests of crowd navigation and avoidance" }
   ],
   features: [
