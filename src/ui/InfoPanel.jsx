@@ -99,6 +99,26 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
     return () => { mounted = false; };
   }, [activeCodeSamples]);
 
+  // highlight code blocks when shown/updated (uses highlight.js if available)
+  useEffect(() => {
+    if (!showCode) return;
+    const t = setTimeout(() => {
+      try {
+        const el = panelRef.current && panelRef.current.querySelector('.code-pre code');
+        if (el) {
+          if (window.hljs && typeof window.hljs.highlightElement === 'function') {
+            window.hljs.highlightElement(el);
+          } else if (window.Prism && typeof window.Prism.highlightElement === 'function') {
+            window.Prism.highlightElement(el);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [showCode, loadedSamples, activeCodeIndex]);
+
   // If no data and not closing, don't render
   if (!project && !unit && !closing) return null;
 
@@ -277,7 +297,14 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
                             ))}
                           </div>
                           <div className="code-content">
-                            <pre className="code-pre"><code>{shown[activeCodeIndex]?.code || ''}</code></pre>
+                            {(() => {
+                              const s = shown[activeCodeIndex] || {};
+                              const ext = (s.filename || '').split('.').pop() || '';
+                              const lang = (s.lang || ext || 'text').toLowerCase();
+                              return (
+                                <pre className="code-pre"><code className={`language-${lang}`}>{s.code || ''}</code></pre>
+                              );
+                            })()}
                           </div>
                         </>
                       );
