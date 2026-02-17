@@ -42,9 +42,24 @@ To support large-scale encounters, I implemented crowd-based navigation with loc
     { src: "ThrallImages/process3.png", caption: "Prototype tests of crowd navigation and avoidance" }
   ],
   features: [
-    { title: "Emergent Combat", text: "Enemies adapt their behaviors during battles based on state trees and shared context." },
-    { title: "Scalable Navigation", text: "Crowd AI that prevents agents from colliding and supports large engagements." },
-    { title: "Optimized AI Pooling", text: "Object pooling system for efficient instantiation and reuse of AI agents in combat scenarios." }
+    {
+      title: "AI Manager System",
+      text: "Centralized system controlling enemy spawning, activation states, and combat flow. Dynamically selects spawn points (closest, furthest, random, or all), manages active/inactive agent pools, triggers horde escalation, and handles room-clear logic with reward drops — ensuring scalable encounters and optimized AI lifecycle management.",
+      codeSamples: [
+        { label: ".h", filename: "AIManager.h", url: "ThrallCode/AIManager.h", lang: "cpp" },
+        { label: ".cpp", filename: "AIManager.cpp", url: "ThrallCode/AIManager.cpp", lang: "cpp" }
+      ]
+    },
+    {
+      title: "Scalable Navigation",
+      text: "Crowd AI that prevents agents from colliding and supports large engagements.",
+      codeSamples: [ { label: "PathManager.cpp", filename: "PathManager.cpp", url: "ThrallCode/PathManager.cpp", lang: "cpp" } ]
+    },
+    {
+      title: "Optimized AI Pooling",
+      text: "Object pooling system for efficient instantiation and reuse of AI agents in combat scenarios.",
+      codeSamples: [ { label: "Pool.h", filename: "AIPool.h", url: "ThrallCode/AIPool.h", lang: "cpp" } ]
+    }
   ]
 }
     });

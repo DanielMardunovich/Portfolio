@@ -37,6 +37,10 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
   // prefer project prop, otherwise use unit.meta.info when present
   const data = project || unit?.meta?.info || {};
   const [heroIndex, setHeroIndex] = useState(0);
+  const [showCode, setShowCode] = useState(false);
+  const [activeCodeIndex, setActiveCodeIndex] = useState(0);
+  const [activeCodeSamples, setActiveCodeSamples] = useState([]);
+  const [loadedSamples, setLoadedSamples] = useState([]);
 
   // build hero image sources priority: data.images -> unit.meta.images -> data.process images
   const heroSources = (data.images && data.images.length)
@@ -57,6 +61,43 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, heroSources.length]);
+
+  // fetch code samples when activeCodeSamples change
+  useEffect(() => {
+    let mounted = true;
+    if (!activeCodeSamples || activeCodeSamples.length === 0) {
+      setLoadedSamples([]);
+      return;
+    }
+    // initialize loadedSamples entries
+    setLoadedSamples(activeCodeSamples.map((s) => ({ ...s, code: s.code || '' })));
+
+    activeCodeSamples.forEach((s, idx) => {
+      const url = s.url || s.src || s.path || s.filename;
+      if (!url || s.code) return;
+      // attempt to fetch
+      fetch(url)
+        .then((r) => { if (!r.ok) throw new Error('fetch failed'); return r.text(); })
+        .then((text) => {
+          if (!mounted) return;
+          setLoadedSamples((prev) => {
+            const copy = prev.slice();
+            copy[idx] = { ...(copy[idx] || {}), ...s, code: text };
+            return copy;
+          });
+        })
+        .catch(() => {
+          // leave as-is or mark error
+          if (!mounted) return;
+          setLoadedSamples((prev) => {
+            const copy = prev.slice();
+            copy[idx] = { ...(copy[idx] || {}), ...s, code: `// Unable to load ${url}` };
+            return copy;
+          });
+        });
+    });
+    return () => { mounted = false; };
+  }, [activeCodeSamples]);
 
   // If no data and not closing, don't render
   if (!project && !unit && !closing) return null;
@@ -189,16 +230,59 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
 
             {/* TECHNICAL BREAKDOWN (feature cards) */}
             <section className="technical container">
-              <h2>Technical Breakdown</h2>
+              <h2>Featured Tech</h2>
               <div className="feature-row">
                 {(data.features && data.features.length > 0) ? (
                   data.features.map((f, i) => (
-                    <div className="feature-card" key={i}><h3>{f.title}</h3><p>{f.text}</p></div>
+                    <div className="feature-card" key={i}>
+                      <h3>{f.title}</h3>
+                      <p>{f.text}</p>
+                      {/* Feature-level code button: accepts f.codeSamples (array) or f.code (string) */}
+                      {((f.codeSamples && f.codeSamples.length) || f.code) && (
+                        <div style={{ marginTop: 10 }}>
+                          <button className="show-code-toggle" onClick={() => {
+                            const samples = (f.codeSamples && f.codeSamples.length) ? f.codeSamples : (f.code ? [{ label: f.filename || f.label || `${f.title} code`, filename: f.filename, code: f.code, lang: f.lang || 'text' }] : []);
+                            setActiveCodeSamples(samples);
+                            setActiveCodeIndex(0);
+                            setShowCode(true);
+                          }}>Show Code</button>
+                        </div>
+                      )}
+                    </div>
                   ))
                 ) : (
                   [1,2,3].map((n) => (
                     <div className="feature-card" key={n}><h3>Feature {n}</h3><p>Details about this feature.</p></div>
                   ))
+                )}
+              </div>
+
+              <div className="technical-code">
+                {showCode && (
+                  <div className="code-panel">
+                    {/* normalize code samples */}
+                    {(() => {
+                      const samples = (activeCodeSamples && activeCodeSamples.length)
+                        ? activeCodeSamples
+                        : (data.codeSamples && data.codeSamples.length) ? data.codeSamples : (data.code ? [{ label: data.codeFilename || 'Code', filename: data.codeFilename, code: data.code, lang: data.codeLang || 'text' }] : []);
+                      if (!samples.length) return <div className="code-empty">No code samples provided.</div>;
+
+                      const shown = loadedSamples.length === samples.length ? loadedSamples : samples.map((s) => ({ ...s, code: s.code || '' }));
+
+                      return (
+                        <>
+                          <div className="code-tabs">
+                            {samples.map((s, idx) => (
+                              <button key={idx} className={`code-tab${idx === activeCodeIndex ? ' active' : ''}`} onClick={() => setActiveCodeIndex(idx)}>{s.label || s.filename || `File ${idx+1}`}</button>
+                            ))}
+                          </div>
+                          <div className="code-content">
+                            <pre className="code-pre"><code>{shown[activeCodeIndex]?.code || ''}</code></pre>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 )}
               </div>
             </section>
