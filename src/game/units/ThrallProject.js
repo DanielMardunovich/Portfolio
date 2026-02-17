@@ -7,7 +7,7 @@ export default class ThrallProject extends UnitBase {
     super({
       ...opts,
       faction: opts.faction || "friendly",
-      sprite: opts.sprite || { sx: 16, sy: 5 },
+      sprite: opts.sprite || "Icons/linkedinpixel.png",
       hp: opts.hp ?? 20,
       atk: opts.atk ?? 20,
       move: opts.move ?? 15,
@@ -51,14 +51,18 @@ To support large-scale encounters, I implemented crowd-based navigation with loc
       ]
     },
     {
-      title: "Scalable Navigation",
-      text: "Crowd AI that prevents agents from colliding and supports large engagements.",
-      codeSamples: [ { label: "PathManager.cpp", filename: "PathManager.cpp", url: "ThrallCode/PathManager.cpp", lang: "cpp" } ]
+      title: "AI Brain Subsystem",
+      text: "Global coordination system that manages AI targeting and combat pacing. Provides a shared player target reference and uses an attack token system to limit how many melee or ranged enemies can attack simultaneously — preventing overcrowding and ensuring controlled, readable combat flow.",
+      codeSamples: [  { label: ".cpp", filename: "SCR_AIBrainSubsystem.cpp", url: "ThrallCode/SCR_AIBrainSubsystem.cpp", lang: "cpp" },
+                      { label: ".h", filename: "SCR_AIBrainSubsystem.h", url: "ThrallCode/SCR_AIBrainSubsystem.h", lang: "cpp" }
+       ]
     },
     {
-      title: "Optimized AI Pooling",
-      text: "Object pooling system for efficient instantiation and reuse of AI agents in combat scenarios.",
-      codeSamples: [ { label: "Pool.h", filename: "AIPool.h", url: "ThrallCode/AIPool.h", lang: "cpp" } ]
+      title: "Object Pooling System",
+      text: "Reusable actor pooling system that pre-spawns and manages inactive actors to eliminate runtime spawn/destruction costs. Supports dynamic top-ups and round-robin retrieval, enabling efficient AI and gameplay object reuse while maintaining stable performance during high-intensity encounters.",
+      codeSamples: [ { label: ".h", filename: "SCR_ObjectPool.h", url: "ThrallCode/SCR_ObjectPool.h", lang: "cpp" },
+                      { label: ".cpp", filename: "SCR_ObjectPool.cpp", url: "ThrallCode/SCR_ObjectPool.cpp", lang: "cpp" }
+       ]
     }
   ]
 }
