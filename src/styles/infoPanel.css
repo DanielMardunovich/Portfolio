@@ -354,6 +354,7 @@
 .btn { display:inline-block; text-decoration:none; text-align:center; padding:10px 12px; border-radius:8px; font-weight:700; }
 .btn.code { background:#d99a3b; color:#111; }
 .btn.download { background:#d99a3b; color:#111; }
+.btn.itch { background:#6b4bd6; color:#fff; }
 
 .media-full { margin:12px 0; }
 .media-gif { width:100%; border-radius:8px; max-height:420px; object-fit:cover; }

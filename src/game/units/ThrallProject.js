@@ -14,8 +14,9 @@ export default class ThrallProject extends UnitBase {
       range: opts.range ?? 3,
       images: opts.images || [
         "GameLogos/Thrall.png",
-        "GameLogos/Thrall.png",
-        "GameLogos/Thrall.png"
+        "ThrallImages/CourtYard.png",
+        "ThrallImages/Market.png",
+        "ThrallImages/Soldier.png"
       ],
       info: opts.info || {
   name: "Thrall",
@@ -28,9 +29,10 @@ export default class ThrallProject extends UnitBase {
            { label: "Group Size", value: "16" },
            { label: "Position", value: "AI Engineer" },
            { label: "Languages", value: "C++" },
-           { label: "Engine", value: "Unreal" }
+           { label: "Engine", value: "Unreal" },
          ],
-  description: `Thrall is a first-person action game where the player embodies the fractured spirit of a fallen king, possessing enemies and uncovering lost memories through dynamic combat encounters.\n
+          itchUrl: opts.itchUrl || "https://futuregames.itch.io/thrall",
+        description: `Thrall is a first-person action game where the player embodies the fractured spirit of a fallen king, possessing enemies and uncovering lost memories through dynamic combat encounters.\n
 As the AI Engineer, I designed and implemented a scalable AI architecture using Unreal Engine State Trees to support complex, hierarchical behavior. The system enables enemies to react dynamically in combat while maintaining clear, maintainable logic structures.\n
 To support large-scale encounters, I implemented crowd-based navigation with local avoidance to ensure smooth multi-agent movement without collision artifacts. I also developed an object pooling system to reduce runtime allocations and optimize performance, allowing the game to sustain high AI counts while maintaining stable frame rates.`,
   gif: "ThrallImages/ThrallAIGif.gif",

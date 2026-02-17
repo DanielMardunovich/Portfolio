@@ -151,7 +151,10 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
                       <a className="btn code" href={data.codeUrl} target="_blank" rel="noopener noreferrer">View Codebase</a>
                     )}
                     {data.downloadUrl && (
-                      <a className="btn download" href={data.downloadUrl}>Download Game</a>
+                      <a className="btn download" href={data.downloadUrl} target="_blank" rel="noopener noreferrer">Download Game</a>
+                    )}
+                    { (data.itchUrl || data.itch) && (
+                      <a className="btn itch" href={data.itchUrl || data.itch} target="_blank" rel="noopener noreferrer">Download on itch.io</a>
                     )}
                   </div>
                 </div>
