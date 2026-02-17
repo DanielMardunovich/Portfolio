@@ -27,6 +27,11 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
   }, [isOpen, closing]);
 
   const handleClose = () => {
+    // Hide any open code panel when closing the info panel
+    setShowCode(false);
+    setActiveCodeSamples([]);
+    setActiveCodeIndex(0);
+
     setClosing(true);
     setTimeout(() => {
       setClosing(false);
@@ -41,6 +46,20 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
   const [activeCodeIndex, setActiveCodeIndex] = useState(0);
   const [activeCodeSamples, setActiveCodeSamples] = useState([]);
   const [loadedSamples, setLoadedSamples] = useState([]);
+
+  // helper to compare sample arrays by filename/url/label
+  const sameSamples = (a, b) => {
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      const A = a[i] || {};
+      const B = b[i] || {};
+      const keyA = A.filename || A.url || A.src || A.label || '';
+      const keyB = B.filename || B.url || B.src || B.label || '';
+      if (keyA !== keyB) return false;
+    }
+    return true;
+  };
 
   // build hero image sources priority: data.images -> unit.meta.images -> data.process images
   const heroSources = (data.images && data.images.length)
@@ -172,8 +191,10 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
             {/* TWO-COLUMN SECTION */}
             <section className="two-column container">
               <div className="left">
-                <h2>Project Overview</h2>
-                <p className="description-text">{data.description || data.text || "Description goes here."}</p>
+                <div className="project-overview">
+                  <h2>Project Overview</h2>
+                  <p className="description-text">{data.description || data.text || "Description goes here."}</p>
+                </div>
               </div>
               <div className="right">
                 <div className="project-details">
@@ -233,7 +254,6 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
 
             {/* PROCESS / PLANNING (image grid with captions) */}
             <section className="process container">
-              <h2>Process / Planning</h2>
               <div className="process-grid">
                 {(data.process && data.process.length > 0) ? (
                   data.process.map((p, i) => (
@@ -250,26 +270,36 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
 
             {/* TECHNICAL BREAKDOWN (feature cards) */}
             <section className="technical container">
-              <h2>Featured Tech</h2>
               <div className="feature-row">
                 {(data.features && data.features.length > 0) ? (
-                  data.features.map((f, i) => (
-                    <div className="feature-card" key={i}>
-                      <h3>{f.title}</h3>
-                      <p>{f.text}</p>
-                      {/* Feature-level code button: accepts f.codeSamples (array) or f.code (string) */}
-                      {((f.codeSamples && f.codeSamples.length) || f.code) && (
-                        <div style={{ marginTop: 10 }}>
-                          <button className="show-code-toggle" onClick={() => {
-                            const samples = (f.codeSamples && f.codeSamples.length) ? f.codeSamples : (f.code ? [{ label: f.filename || f.label || `${f.title} code`, filename: f.filename, code: f.code, lang: f.lang || 'text' }] : []);
-                            setActiveCodeSamples(samples);
-                            setActiveCodeIndex(0);
-                            setShowCode(true);
-                          }}>Show Code</button>
-                        </div>
-                      )}
-                    </div>
-                  ))
+                  data.features.map((f, i) => {
+                    const samples = (f.codeSamples && f.codeSamples.length) ? f.codeSamples : (f.code ? [{ label: f.filename || f.label || `${f.title} code`, filename: f.filename, code: f.code, lang: f.lang || 'text' }] : []);
+                    const isActive = showCode && sameSamples(activeCodeSamples, samples);
+                    return (
+                      <div className="feature-card" key={i}>
+                        <h3>{f.title}</h3>
+                        <p>{f.text}</p>
+                        {/* Feature-level code button: accepts f.codeSamples (array) or f.code (string) */}
+                        {(samples && samples.length) && (
+                          <div style={{ marginTop: 10 }}>
+                            <button
+                              className={`show-code-toggle${isActive ? ' active' : ''}`}
+                              onClick={() => {
+                                if (isActive) {
+                                  setShowCode(false);
+                                  setActiveCodeSamples([]);
+                                } else {
+                                  setActiveCodeSamples(samples);
+                                  setActiveCodeIndex(0);
+                                  setShowCode(true);
+                                }
+                              }}
+                            >{isActive ? 'Hide Code' : 'Show Code'}</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 ) : (
                   [1,2,3].map((n) => (
                     <div className="feature-card" key={n}><h3>Feature {n}</h3><p>Details about this feature.</p></div>

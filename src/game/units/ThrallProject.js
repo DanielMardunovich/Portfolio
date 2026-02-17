@@ -26,7 +26,6 @@ export default class ThrallProject extends UnitBase {
          details: [
            { label: "Date", value: "May 2025" },
            { label: "Duration", value: "7 Weeks" },
-           { label: "Group Size", value: "16" },
            { label: "Position", value: "AI Engineer" },
            { label: "Languages", value: "C++" },
            { label: "Engine", value: "Unreal" },
@@ -37,9 +36,9 @@ As the AI Engineer, I designed and implemented a scalable AI architecture using 
 To support large-scale encounters, I implemented crowd-based navigation with local avoidance to ensure smooth multi-agent movement without collision artifacts. I also developed an object pooling system to reduce runtime allocations and optimize performance, allowing the game to sustain high AI counts while maintaining stable frame rates.`,
   gif: "ThrallImages/ThrallAIGif.gif",
   process: [
-    { src: "ThrallImages/StateTreePlanning.png", caption: `This image shows the initial planning and architecture sketches for the AI state trees. \n I aimed to paint the general states and transitions for enemy behaviors.` },
-    { src: "ThrallImages/AIStateTreeImplementation.png", caption: `This image shows the implementation of the AI state tree for enemy behaviors. \n Each state represents a distinct behavior, and transitions define the conditions for switching between states.` },
-    { src: "ThrallImages/process3.png", caption: "Prototype tests of crowd navigation and avoidance" }
+    { src: "ThrallImages/StateTreePlanning.png", caption: `Early architecture sketch of the AI State Tree framework. The diagram maps high-level behavioral states, transition conditions, and combat flow logic that structured enemy decision-making.` },
+    { src: "ThrallImages/AIStateTreeImplementation.png", caption: `AI State Tree implementation detailing structured behavior nodes and condition-based transitions. The system enables modular, hierarchical decision-making while maintaining clarity and scalability.` },
+    { src: "ThrallImages/AIControllerBlueprint.png", caption: `AI Controller Blueprint integrating Unreal’s AI Perception with the State Tree framework. Stimulus events are validated, processed, and translated into state transitions, ensuring responsive and structured combat behavior.` }
   ],
   features: [
     {
