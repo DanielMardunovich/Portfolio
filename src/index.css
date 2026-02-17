@@ -1,4 +1,46 @@
 /* =========================================================
-   0. Imports & Root Variables
-   ========================================================= */
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+    Design System Tokens & Typography
+    ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+:root {
+   /* Colors */
+   --bg: #0F1115;
+   --card: #151A21;
+   --section: #1B2129;
+   --text-primary: #E6EDF3;
+   --text-secondary: #AAB3BD;
+   --accent: #D4A84F;
+   --accent-hover: #E8C77D;
+   --border: rgba(255,255,255,0.04);
+   --muted: rgba(255,255,255,0.06);
+   --radius: 8px;
+   --container-padding: 20px;
+}
+
+/* Base typography */
+html, body { height: 100%; }
+body {
+   margin: 0;
+   background: var(--bg);
+   color: var(--text-primary);
+   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+   font-weight: 400;
+   line-height: 1.6;
+   -webkit-font-smoothing:antialiased;
+   -moz-osx-font-smoothing:grayscale;
+}
+
+h1, h2, h3, h4, h5 { font-family: inherit; font-weight: 600; color: var(--text-primary); margin: 0 0 12px 0; }
+h1 { font-size: 34px; }
+h2 { font-size: 26px; }
+h3 { font-size: 19px; }
+
+p { margin: 0 0 16px 0; color: var(--text-secondary); max-width: 65ch; }
+
+/* Utility */
+.container { padding: var(--container-padding); }
+
+/* Use border-box globally so 100% widths include padding/borders */
+*, *::before, *::after { box-sizing: border-box; }
+
