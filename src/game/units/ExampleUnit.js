@@ -18,13 +18,30 @@ export default class ExampleSoldier extends UnitBase {
         "/GameLogos/logo2.png",
       ],
       info: opts.info || {
-        name: "Daniel",
-        headline: "The coolest dude in the world",
-        text: `Hi, I'm Daniel and I like to code cool games and make awesome portfolios!`,
+        name: "ExampleSoldier",
+        role: "Example project role",
+        summary: "Built an AI behavior system for large-scale unit coordination.",
+        description: `A concise description of the project and goals. This project explores multi-agent planning and emergent behaviors in large simulated battles.`,
+        responsibilities: [
+          { title: "Navigation", text: "Designed pathfinding and local avoidance for thousands of agents." },
+          { title: "Decision Systems", text: "Implemented hierarchical task planning and behavior trees." },
+          { title: "Optimization", text: "Profiled and optimized systems for real-time performance." }
+        ],
+        gif: "/GameLogos/demo.gif",
+        process: [
+          { src: "/GameLogos/process1.png", caption: "Early planning sketches" },
+          { src: "/GameLogos/process2.png", caption: "State machine diagrams" },
+          { src: "/GameLogos/process3.png", caption: "Prototype flow" }
+        ],
+        features: [
+          { title: "Scalable Pathfinding", text: "Custom grid-based path manager for hundreds of agents." },
+          { title: "Behavior Trees", text: "Reusable behavior tree nodes and debugging tools." },
+          { title: "Blackboard System", text: "Shared context for group tactics." }
+        ]
       }
     });
   }
 }
 
 // register this example so it can be created by type name
-registerUnitType("Daniel", ExampleSoldier);
+registerUnitType("ExampleSoldier", ExampleSoldier);
