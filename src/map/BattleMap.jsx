@@ -300,7 +300,7 @@ export default function BattleMap() {
     canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
   };
 
-  const redraw = () => {
+const redraw = () => {
     if (!imagesLoadedRef.current || !mapRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -356,18 +356,19 @@ export default function BattleMap() {
     drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
     drawGrid(ctx, viewRef.current.tilesX, viewRef.current.tilesY);
 
-    // Draw movement overlays last so they appear above everything else.
-    // Read from refs so the rAF loop always sees the latest values even when
-    // state updates haven't propagated to this closure yet.
     if (moveModeRef.current && movingUnitRef.current) {
+      // Filter out the unit's own tile from the blue movement overlay
+      const movUnit = movingUnitRef.current;
+      const filteredTiles = reachableTilesRef.current.filter(
+        t => !(t.x === movUnit.x && t.y === movUnit.y)
+      );
+
       // Player movement tiles: blue
-      drawColoredRange(ctx, reachableTilesRef.current, cameraRef.current, "rgba(0,100,255,0.35)");
+      drawColoredRange(ctx, filteredTiles, cameraRef.current, "rgba(0,100,255,0.35)");
       // Attack edge tiles: red, drawn on top of movement
       if (attackTilesRef.current && attackTilesRef.current.length > 0) {
         drawColoredRange(ctx, attackTilesRef.current, cameraRef.current, "rgba(255,0,0,0.45)");
       }
-
-      drawSelection(ctx, tilesetRef.current, movingUnitRef.current, cameraRef.current);
 
       // Draw path with arrows
       if (currentPathRef.current && currentPathRef.current.length > 1) {

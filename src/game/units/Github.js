@@ -2,20 +2,20 @@ import UnitBase from "./UnitBase.js";
 import { registerUnitType } from "../units.js";
 
 // Small example enemy unit
-export default class LinkedIn extends UnitBase {
+export default class Github extends UnitBase {
   constructor(opts = {}) {
     super({
       ...opts,
       faction: opts.faction || "enemy",
-      sprite: opts.sprite || "Icons/linkedinpixel.png",
+      sprite: opts.sprite || "Icons/githubpixel.png",
       hp: opts.hp ?? 8,
       atk: opts.atk ?? 2,
       move: opts.move ?? 5,
       range: opts.range ?? 1,
       info: opts.info || {
-        name: "LinkedIn",
+        name: "GitHub",
         links: [
-          { label: "LinkedIn", url: "https://www.linkedin.com/in/daniel-mardunovich/" }
+          { label: "GitHub", url: "https://github.com/DanielMardunovich" }
         ]
       },
       editorShowInfo: false
@@ -24,4 +24,4 @@ export default class LinkedIn extends UnitBase {
 }
 
 // register this enemy so it can be spawned by type name
-registerUnitType("LinkedIn", LinkedIn);
+registerUnitType("GitHub", Github);

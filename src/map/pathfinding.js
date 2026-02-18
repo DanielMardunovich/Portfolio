@@ -129,25 +129,26 @@ export function getReachableTiles(startX, startY, maxCost, map, occupiedPosition
   const width = map[0].length;
   const height = map.length;
   const reachable = [];
+  const addedToReachable = new Set(); // <-- add this
   
   const key = (x, y) => `${x},${y}`;
-  const visited = new Map(); // Maps key to cost
+  const visited = new Map();
   const queue = [{ x: startX, y: startY, cost: 0 }];
   visited.set(key(startX, startY), 0);
   
   while (queue.length > 0) {
     const current = queue.shift();
     
-    // Add to reachable if not the starting position
     if (!(current.x === startX && current.y === startY)) {
-      // Check if position is occupied
       const isOccupied = occupiedPositions.some(pos => pos.x === current.x && pos.y === current.y);
-      if (!isOccupied) {
+      const tileKey = key(current.x, current.y);
+      // Only add to reachable once per tile
+      if (!isOccupied && !addedToReachable.has(tileKey)) {
+        addedToReachable.add(tileKey);
         reachable.push({ x: current.x, y: current.y, cost: current.cost });
       }
     }
     
-    // Check neighbors
     const neighbors = [
       { x: current.x + 1, y: current.y },
       { x: current.x - 1, y: current.y },
@@ -158,19 +159,16 @@ export function getReachableTiles(startX, startY, maxCost, map, occupiedPosition
     for (const neighbor of neighbors) {
       const { x, y } = neighbor;
       
-      // Check bounds
       if (x < 0 || x >= width || y < 0 || y >= height) continue;
       
       const tileCost = getTileWalkCost(map[y][x]);
       const newCost = current.cost + tileCost;
       
-      // Check if within movement range
       if (newCost > maxCost) continue;
       
       const neighborKey = key(x, y);
       const previousCost = visited.get(neighborKey);
       
-      // If not visited or found a cheaper path
       if (previousCost === undefined || newCost < previousCost) {
         visited.set(neighborKey, newCost);
         queue.push({ x, y, cost: newCost });
