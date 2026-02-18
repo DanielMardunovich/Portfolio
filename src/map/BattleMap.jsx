@@ -90,6 +90,16 @@ export default function BattleMap() {
   const [enemySelectedUnit, setEnemySelectedUnit] = useState(null);
   const [enemyReachableTiles, setEnemyReachableTiles] = useState([]);
   const [attackTiles, setAttackTiles] = useState([]);
+
+  // Refs that mirror the above state so the rAF animation loop always reads
+  // fresh values (state captured in a closure goes stale across frames).
+  const moveModeRef = useRef(false);
+  const movingUnitRef = useRef(null);
+  const reachableTilesRef = useRef([]);
+  const currentPathRef = useRef(null);
+  const enemySelectedUnitRef = useRef(null);
+  const enemyReachableTilesRef = useRef([]);
+  const attackTilesRef = useRef([]);
   // InfoPanel state for portfolio project info
   const [infoPanelProject, setInfoPanelProject] = useState(null);
   const [infoPanelUnit, setInfoPanelUnit] = useState(null);
@@ -142,13 +152,23 @@ export default function BattleMap() {
   const enemyAnimationTimeoutRef = useRef(null);
   const friendlyAnimationTimeoutRef = useRef(null);
 
+  // Synced setters — always update the ref immediately so the rAF loop sees the
+  // latest value, then update React state so components re-render as normal.
+  const setMoveModeSync = (val) => { moveModeRef.current = val; setMoveMode(val); };
+  const setMovingUnitSync = (val) => { movingUnitRef.current = val; setMovingUnit(val); };
+  const setReachableTilesSync = (val) => { reachableTilesRef.current = val; setReachableTiles(val); };
+  const setCurrentPathSync = (val) => { currentPathRef.current = val; setCurrentPath(val); };
+  const setEnemySelectedUnitSync = (val) => { enemySelectedUnitRef.current = val; setEnemySelectedUnit(val); };
+  const setEnemyReachableTilesSync = (val) => { enemyReachableTilesRef.current = val; setEnemyReachableTiles(val); };
+  const setAttackTilesSync = (val) => { attackTilesRef.current = val; setAttackTiles(val); };
+
   // Helper function to clear move mode state
   const clearMoveMode = () => {
-    setMoveMode(false);
-    setMovingUnit(null);
-    setReachableTiles([]);
-    setCurrentPath(null);
-    setAttackTiles([]);
+    setMoveModeSync(false);
+    setMovingUnitSync(null);
+    setReachableTilesSync([]);
+    setCurrentPathSync(null);
+    setAttackTilesSync([]);
     selectedUnitRef.current = null;
   };
 
@@ -337,25 +357,27 @@ export default function BattleMap() {
     drawGrid(ctx, viewRef.current.tilesX, viewRef.current.tilesY);
 
     // Draw movement overlays last so they appear above everything else.
-    if (moveMode && movingUnit) {
+    // Read from refs so the rAF loop always sees the latest values even when
+    // state updates haven't propagated to this closure yet.
+    if (moveModeRef.current && movingUnitRef.current) {
       // Player movement tiles: blue
-      drawColoredRange(ctx, reachableTiles, cameraRef.current, "rgba(0,100,255,0.35)");
+      drawColoredRange(ctx, reachableTilesRef.current, cameraRef.current, "rgba(0,100,255,0.35)");
       // Attack edge tiles: red, drawn on top of movement
-      if (attackTiles && attackTiles.length > 0) {
-        drawColoredRange(ctx, attackTiles, cameraRef.current, "rgba(255,0,0,0.45)");
+      if (attackTilesRef.current && attackTilesRef.current.length > 0) {
+        drawColoredRange(ctx, attackTilesRef.current, cameraRef.current, "rgba(255,0,0,0.45)");
       }
 
-      drawSelection(ctx, tilesetRef.current, movingUnit, cameraRef.current);
+      drawSelection(ctx, tilesetRef.current, movingUnitRef.current, cameraRef.current);
 
       // Draw path with arrows
-      if (currentPath && currentPath.length > 1) {
-        drawPath(ctx, tilesetRef.current, currentPath, cameraRef.current, getArrowTileForPath);
+      if (currentPathRef.current && currentPathRef.current.length > 1) {
+        drawPath(ctx, tilesetRef.current, currentPathRef.current, cameraRef.current, getArrowTileForPath);
       }
     }
 
     // Draw enemy selected movement range last (red overlay)
-    if (enemySelectedUnit && enemyReachableTiles && enemyReachableTiles.length > 0) {
-      drawColoredRange(ctx, enemyReachableTiles, cameraRef.current, "rgba(255,0,0,0.45)");
+    if (enemySelectedUnitRef.current && enemyReachableTilesRef.current && enemyReachableTilesRef.current.length > 0) {
+      drawColoredRange(ctx, enemyReachableTilesRef.current, cameraRef.current, "rgba(255,0,0,0.45)");
     }
 
     // Draw floating damage numbers above everything
@@ -942,14 +964,14 @@ useEffect(() => {
         }
 
         // Enter move mode
-        setMoveMode(true);
-        setMovingUnit(unit);
+        setMoveModeSync(true);
+        setMovingUnitSync(unit);
         // Calculate reachable tiles using A*
         const occupied = [...friendlyUnits, ...enemyUnits.filter(e => !e.isDead)]
           .filter(u => u.id !== unit.id)
           .map(u => ({ x: u.x, y: u.y }));
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
-        setReachableTiles(tiles);
+        setReachableTilesSync(tiles);
         // Compute attack tiles: all tiles within `movingUnit.range` from any reachable tile
         // (exclude tiles that are already reachable to avoid overlap)
         const reachableSet = new Set(tiles.map(t => `${t.x},${t.y}`));
@@ -976,10 +998,13 @@ useEffect(() => {
           const [x, y] = k.split(",").map(Number);
           return { x, y };
         });
-        setAttackTiles(edge);
+        setAttackTilesSync(edge);
         // Close menu
         setMenuUnit(null);
         setMenuPosition(null);
+        // Force immediate canvas repaint so movement range appears right away
+        // without waiting for the next mouse interaction.
+        requestAnimationFrame(() => redraw());
         break;
       case "attack":
         // TODO: Implement attack functionality
@@ -1004,7 +1029,22 @@ useEffect(() => {
         setInfoPanelOpen(true);
         break;
       case "link":
-        // TODO: Implement enemy link action
+        // Open the unit's configured link(s) if available.
+        try {
+          const links = unit?.meta?.links || unit?.meta?.info?.links;
+          if (Array.isArray(links) && links.length > 0) {
+            const first = links[0];
+            const url = typeof first === "string" ? first : (first.url || first.href || first.link);
+            if (url) {
+              window.open(url, "_blank");
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to open link for unit", unit && unit.id, err);
+        }
+        setMenuUnit(null);
+        setMenuPosition(null);
+        break;
         break;
       default:
         break;
@@ -1022,17 +1062,17 @@ useEffect(() => {
           .filter(u => u.id !== movingUnit.id)
           .map(u => ({ x: u.x, y: u.y }));
         const path = findPath(movingUnit.x, movingUnit.y, tile.x, tile.y, mapRef.current, movingUnit.move, occupied);
-        setCurrentPath(path);
+        setCurrentPathSync(path);
       } else {
-        setCurrentPath(null);
+        setCurrentPathSync(null);
       }
     }
   };
 
   const handleTileClick = (tile) => {
     // Clear enemy selection when clicking any tile (including when cancelling)
-    setEnemySelectedUnit(null);
-    setEnemyReachableTiles([]);
+    setEnemySelectedUnitSync(null);
+    setEnemyReachableTilesSync([]);
 
     if (moveMode && movingUnit) {
       // Check if clicked tile is reachable
@@ -1154,12 +1194,12 @@ useEffect(() => {
           .filter(u => u.id !== unit.id)
           .map(u => ({ x: u.x, y: u.y }));
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
-        setEnemyReachableTiles(tiles);
-        setEnemySelectedUnit(unit);
+        setEnemyReachableTilesSync(tiles);
+        setEnemySelectedUnitSync(unit);
       } else {
         // Clicking a friendly unit should clear any enemy selection
-        setEnemySelectedUnit(null);
-        setEnemyReachableTiles([]);
+        setEnemySelectedUnitSync(null);
+        setEnemyReachableTilesSync([]);
       }
 
       setMenuUnit(unit);

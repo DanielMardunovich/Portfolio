@@ -210,28 +210,35 @@ export function getArrowTileForPath(path, index) {
     if (fromDir === "down" || fromDir === "up") return "arrow_helper_ud";
   }
   
-  // Corners - use the opposite tile from what the directions suggest
-  // This compensates for sprite orientation
-  
-  // Moving right then turning down
-  if (fromDir === "right" && toDir === "down") return "arrow_helper_ul";
-  // Moving right then turning up
-  if (fromDir === "right" && toDir === "up") return "arrow_helper_ld";
-  
-  // Moving left then turning down
-  if (fromDir === "left" && toDir === "down") return "arrow_helper_ur";
-  // Moving left then turning up
-  if (fromDir === "left" && toDir === "up") return "arrow_helper_dr";
-  
-  // Moving down then turning right
-  if (fromDir === "down" && toDir === "right") return "arrow_helper_ul";
-  // Moving down then turning left
-  if (fromDir === "down" && toDir === "left") return "arrow_helper_ur";
-  
-  // Moving up then turning right
-  if (fromDir === "up" && toDir === "right") return "arrow_helper_ld";
-  // Moving up then turning left
-  if (fromDir === "up" && toDir === "left") return "arrow_helper_dr";
+  // Corners
+  // The tile name describes which two sides are OPEN (where path enters and exits).
+  // fromDir = direction we travelled TO reach this tile (i.e. the entry side is the opposite)
+  // toDir   = direction we will travel LEAVING this tile (i.e. the exit side)
+  //
+  // Entry side  = opposite of fromDir
+  // Exit side   = toDir
+  //
+  // right then up  : enters from left, exits top    → open left+top    = ul  (└)
+  if (fromDir === "right" && toDir === "up") return "arrow_helper_ul";
+  // right then down: enters from left, exits bottom → open left+bottom = ld  (┌)
+  if (fromDir === "right" && toDir === "down") return "arrow_helper_ld";
+
+  // left then up   : enters from right, exits top   → open right+top   = ur  (┘)
+  if (fromDir === "left" && toDir === "up") return "arrow_helper_ur";
+  // left then down : enters from right, exits bottom→ open right+bottom= dr  (┐)
+  if (fromDir === "left" && toDir === "down") return "arrow_helper_dr";
+
+  // down then right: enters from top, exits right   → open top+right   = dr  (┐) wait —
+  // enters top, exits right → open top+right = ur? No:
+  // "ur" = up+right open = ┘ shape — that connects top and right, correct for entering-from-top exiting-right
+  if (fromDir === "down" && toDir === "right") return "arrow_helper_ur";
+  // down then left : enters from top, exits left    → open top+left    = ul  (└)
+  if (fromDir === "down" && toDir === "left") return "arrow_helper_ul";
+
+  // up then right  : enters from bottom, exits right→ open bottom+right= dr  (┐)
+  if (fromDir === "up" && toDir === "right") return "arrow_helper_dr";
+  // up then left   : enters from bottom, exits left → open bottom+left = ld  (┌)
+  if (fromDir === "up" && toDir === "left") return "arrow_helper_ld";
   
   return "arrow_helper_ud";
 }

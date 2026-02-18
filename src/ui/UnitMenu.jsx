@@ -144,13 +144,19 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
       {isEnemy ? (
         // Enemy unit options
         <>
-          <button 
-            className="unit-menu-option"
-            onClick={() => handleAction("link")}
-          >
-            <span className="menu-icon">⛓</span>
-            <span>Link</span>
-          </button>
+          {/* Show Link only when the unit provides links in metadata */}
+          {unit.meta && (
+            ((Array.isArray(unit.meta.links) && unit.meta.links.length > 0) ||
+             (unit.meta.info && Array.isArray(unit.meta.info.links) && unit.meta.info.links.length > 0))
+          ) && (
+            <button 
+              className="unit-menu-option"
+              onClick={() => handleAction("link")}
+            >
+              <span className="menu-icon">⛓</span>
+              <span>Link</span>
+            </button>
+          )}
         </>
       ) : (
         // Friendly unit options
