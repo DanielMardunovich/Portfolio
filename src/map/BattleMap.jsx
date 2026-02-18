@@ -96,6 +96,9 @@ export default function BattleMap() {
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [bubblePos, setBubblePos] = useState(null);
   const [bubbleUnitId, setBubbleUnitId] = useState(null);
+  // ref to hold a pending movingUnit update when we need to avoid calling
+  // `setMovingUnit` from inside another state updater (prevents setState-in-render)
+  const pendingMovingUpdateRef = useRef(null);
 
   // Example: Define your portfolio projects and contact methods here
   // Friendly units = portfolio projects, enemies = you/contact methods
@@ -595,10 +598,19 @@ export default function BattleMap() {
           return units;
         }
         const updated = units.map(u => u.id === unit.id ? { ...u, x: nextPos.x, y: nextPos.y } : u);
-        // Also update the movingUnit state so the selection/render stays in sync
-        setMovingUnit(prev => prev && prev.id === unit.id ? { ...prev, x: nextPos.x, y: nextPos.y } : prev);
+        // Do NOT call setMovingUnit from inside this updater (can trigger setState-in-render
+        // warnings if invoked during parent render). Instead, store the pending update in a ref
+        // and apply it immediately after the updater completes.
+        pendingMovingUpdateRef.current = { id: unit.id, x: nextPos.x, y: nextPos.y };
         return updated;
       });
+
+      // If we recorded a pending movingUnit update, apply it now (outside the updater)
+      if (pendingMovingUpdateRef.current) {
+        const p = pendingMovingUpdateRef.current;
+        setMovingUnit(prev => prev && prev.id === p.id ? { ...prev, x: p.x, y: p.y } : prev);
+        pendingMovingUpdateRef.current = null;
+      }
 
       if (!canMove) {
         setFriendlyUnits(units => units.map(u => u.id === unit.id ? { ...u, hasActed: true } : u));
