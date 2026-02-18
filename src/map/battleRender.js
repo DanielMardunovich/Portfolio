@@ -70,10 +70,29 @@ export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOf
     const y = u.y - cam.y;
     if (x < 0 || y < 0 || x >= view.tilesX || y >= view.tilesY) return;
 
-    // Apply shake offset when provided
-    const offset = (shakeOffsets && shakeOffsets.has(u.id)) ? shakeOffsets.get(u.id) : { dx: 0, dy: 0 };
-    const drawX = x * TILE_SIZE + (offset.dx || 0);
-    const drawY = y * TILE_SIZE + (offset.dy || 0);
+    // Base shake offset when provided (e.g. hit animations)
+    const baseOffset = (shakeOffsets && shakeOffsets.has(u.id)) ? shakeOffsets.get(u.id) : { dx: 0, dy: 0 };
+
+    // Idle wiggle: small sinusoidal offset for units that are idle (haven't acted and not dead)
+    let idleOffset = { dx: 0, dy: 0 };
+    if (!u.isDead && !u.hasActed) {
+      const now = performance.now() / 1000; // seconds
+      // Create a stable per-unit seed from the id so units wiggle out of phase
+      let seed = 0;
+      const idStr = String(u.id || "");
+      for (let i = 0; i < idStr.length; i++) seed = (seed * 31 + idStr.charCodeAt(i)) | 0;
+      const phase = now * 3 + (seed % 100) * 0.02; // frequency and per-unit offset
+      const ax = 0.7; // horizontal amplitude in pixels
+      const ay = 1.0; // vertical amplitude in pixels
+      idleOffset.dx = Math.sin(phase) * ax;
+      idleOffset.dy = Math.sin(phase * 1.2) * ay * 0.6; // slightly different vertical timing
+    }
+
+    const offset = { dx: (baseOffset.dx || 0) + (idleOffset.dx || 0), dy: (baseOffset.dy || 0) + (idleOffset.dy || 0) };
+    // Round final draw positions to integer pixels to avoid subpixel sampling
+    // which causes pixel-art blurriness during smooth fractional movement.
+    const drawX = Math.round(x * TILE_SIZE + offset.dx);
+    const drawY = Math.round(y * TILE_SIZE + offset.dy);
 
     // Draw faction highlight behind unit (green for friendly, red for enemy)
     if (u.faction) {

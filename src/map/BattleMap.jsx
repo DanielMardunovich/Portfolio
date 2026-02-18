@@ -79,6 +79,7 @@ export default function BattleMap() {
   const mapRevealTimeRef = useRef(0);
   const mapRevealRafRef = useRef(null);
   const mapRevealTotalRef = useRef(0);
+  const rafRef = useRef(null);
 
   const [menuUnit, setMenuUnit] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
@@ -360,6 +361,41 @@ export default function BattleMap() {
     // Draw floating damage numbers above everything
     drawDamageNumbers(ctx, damageNumbersRef.current, cameraRef.current);
   };
+
+  // Animation loop: when there are idle units or active hit/shake animations,
+  // run a requestAnimationFrame loop so idle wiggle (time-based) continues
+  // even when the user is not moving the mouse.
+  useEffect(() => {
+    const needsAnimation = () => {
+      // Idle units present
+      const hasIdle = (friendlyUnits || []).some(u => !u.isDead && !u.hasActed) || (enemyUnits || []).some(u => !u.isDead && !u.hasActed);
+      const hasHit = hitAnimationsRef.current && hitAnimationsRef.current.size > 0;
+      const hasShake = shakeRef.current && shakeRef.current.size > 0;
+      const revealActive = phase === PHASES.MAP_INTRO && mapRevealRafRef.current;
+      return hasIdle || hasHit || hasShake || revealActive;
+    };
+
+    const loop = () => {
+      redraw();
+      rafRef.current = requestAnimationFrame(loop);
+    };
+
+    if (needsAnimation()) {
+      if (!rafRef.current) rafRef.current = requestAnimationFrame(loop);
+    } else {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    }
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [friendlyUnits, enemyUnits, phase]);
 
   useEffect(() => {
     if (phase !== PHASES.MAP_INTRO) return;
