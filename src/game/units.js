@@ -64,6 +64,8 @@ export function createUnitFromType(typeName, { id, x = 0, y = 0 } = {}) {
     move: def.move,
     range: def.range,
     hasActed: false,
+    // Editor-only visibility flag (used by editor/UI to decide whether to show project info)
+    editorShowInfo: def.editorShowInfo !== undefined ? !!def.editorShowInfo : true,
     // metadata for UI (info panel images/text etc.)
     meta: {
       images: def.images || [],

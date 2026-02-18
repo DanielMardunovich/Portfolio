@@ -113,14 +113,16 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
         top: `${computedPos.top}px`
       }}
     >
-      {/* Top full-width Project info bar */}
-      <button
-        className="unit-menu-option unit-menu-project-top project-info"
-        onClick={() => handleAction("info")}
-      >
-        <span className="menu-icon">ⓘ</span>
-        <span>Project info</span>
-      </button>
+      {/* Top full-width Project info bar (only when editorShowInfo is enabled) */}
+      {unit.editorShowInfo !== false && (
+        <button
+          className="unit-menu-option unit-menu-project-top project-info"
+          onClick={() => handleAction("info")}
+        >
+          <span className="menu-icon">ⓘ</span>
+          <span>Project info</span>
+        </button>
+      )}
 
       <div className="unit-menu-header">
         <div className="unit-menu-name">{unit.meta?.info?.name || unit.type || unit.id}</div>

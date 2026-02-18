@@ -480,6 +480,8 @@ export default function BattleMap() {
           atk: def.atk,
           move: def.move,
           range: def.range,
+          // Preserve editor-only visibility flag so UI can decide whether to show Project info
+          editorShowInfo: def.editorShowInfo !== undefined ? !!def.editorShowInfo : undefined,
           meta: def.meta // include images/info for UI
         };
 
