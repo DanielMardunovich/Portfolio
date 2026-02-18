@@ -34,7 +34,7 @@ export default class ThrallProject extends UnitBase {
         description: `Thrall is a first-person action game where the player embodies the fractured spirit of a fallen king, possessing enemies and uncovering lost memories through dynamic combat encounters.\n
 As the AI Engineer, I designed and implemented a scalable AI architecture using Unreal Engine State Trees to support complex, hierarchical behavior. The system enables enemies to react dynamically in combat while maintaining clear, maintainable logic structures.\n
 To support large-scale encounters, I implemented crowd-based navigation with local avoidance to ensure smooth multi-agent movement without collision artifacts. I also developed an object pooling system to reduce runtime allocations and optimize performance, allowing the game to sustain high AI counts while maintaining stable frame rates.`,
-  gif: "ThrallImages/ThrallAIGif.gif",
+  gif: "ThrallImages/ThrallGif.gif",
   process: [
     { src: "ThrallImages/StateTreePlanning.png", caption: `Early architecture sketch of the AI State Tree framework. The diagram maps high-level behavioral states, transition conditions, and combat flow logic that structured enemy decision-making.` },
     { src: "ThrallImages/AIStateTreeImplementation.png", caption: `AI State Tree implementation detailing structured behavior nodes and condition-based transitions. The system enables modular, hierarchical decision-making while maintaining clarity and scalability.` },

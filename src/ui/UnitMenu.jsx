@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { FACTION } from "../game/units";
 import "../styles/unitMenu.css";
 
 export default function UnitMenu({ unit, position, onSelect, onClose }) {
   const menuRef = useRef(null);
+  const [computedPos, setComputedPos] = useState({ left: position?.x ?? 0, top: position?.y ?? 0 });
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -27,6 +28,45 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
     };
   }, [onClose]);
 
+  // Compute menu position after render so it doesn't overflow the viewport.
+  useLayoutEffect(() => {
+    if (!menuRef.current || !position) return;
+
+    const compute = () => {
+      const margin = 8;
+      const menuRect = menuRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      let left = position.x;
+      let top = position.y;
+
+      // If menu would overflow bottom, try to flip above the unit
+      if (top + menuRect.height + margin > vh) {
+        const aboveTop = position.y - menuRect.height - margin;
+        if (aboveTop >= margin) {
+          top = Math.max(margin, position.y - menuRect.height - 12);
+        } else {
+          // clamp so menu fits in viewport
+          top = Math.max(margin, vh - menuRect.height - margin);
+        }
+      }
+
+      // Ensure menu stays within vertical bounds
+      top = Math.max(margin, Math.min(top, vh - menuRect.height - margin));
+
+      // Ensure horizontal stays within viewport
+      left = Math.max(margin, Math.min(left, vw - menuRect.width - margin));
+
+      setComputedPos({ left, top });
+    };
+
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position?.x, position?.y, unit?.id]);
+
   if (!unit || !position) return null;
 
   const handleAction = (action) => {
@@ -41,8 +81,8 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
       ref={menuRef}
       className="unit-menu"
       style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`
+        left: `${computedPos.left}px`,
+        top: `${computedPos.top}px`
       }}
     >
       <div className="unit-menu-header">

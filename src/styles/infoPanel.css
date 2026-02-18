@@ -9,7 +9,7 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.6);
-  z-index: 99;
+  z-index: 1099;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -36,7 +36,7 @@
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   border-radius: var(--radius) var(--radius) 0 0;
-  z-index: 100;
+  z-index: 1100;
   transition: transform 0.35s ease-out;
   box-shadow: 0 8px 24px rgba(0,0,0,0.6);
 }
@@ -59,27 +59,37 @@
 
 .info-panel-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 20px 28px;
   background: transparent;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  position: relative;
 }
 
 .info-panel-title {
   margin: 0;
-  font-size: 26px;
-  color: var(--text-primary);
+  font-size: 30px;
+  color: var(--accent);
   font-family: inherit;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  padding: 2px 8px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
 .info-panel-close {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-primary);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   cursor: pointer;
   padding: 6px 10px;
   line-height: 1;
@@ -87,7 +97,7 @@
   border-radius: 6px;
 }
 
-.info-panel-close:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+.info-panel-close:hover { transform: translateY(calc(-50% - 2px)); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
 
 .info-panel-body {
   padding: 24px 28px;
@@ -295,7 +305,7 @@
 .hero-image img { width:100%; height:100%; object-fit:cover; }
 
 .summary-strip { background: rgba(255,255,255,0.02); padding:12px 14px; border-radius:8px; margin:12px 0; }
-.summary-strip p { margin:0; color:var(--text-secondary); font-weight:600; }
+.summary-strip p { margin:0; color:var(--text-secondary); font-weight:600; max-width: none; width: 100%; }
 
 /* Slideshow styles */
 .slideshow { position: relative; width: 100%; height: 100%; overflow: hidden; display:flex; align-items:center; justify-content:center; background:var(--card); }
