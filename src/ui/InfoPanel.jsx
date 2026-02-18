@@ -46,6 +46,7 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
   const [activeCodeIndex, setActiveCodeIndex] = useState(0);
   const [activeCodeSamples, setActiveCodeSamples] = useState([]);
   const [loadedSamples, setLoadedSamples] = useState([]);
+  const [lightbox, setLightbox] = useState(null);
 
   // helper to compare sample arrays by filename/url/label
   const sameSamples = (a, b) => {
@@ -117,6 +118,13 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
     });
     return () => { mounted = false; };
   }, [activeCodeSamples]);
+
+  // close lightbox on Escape
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') setLightbox(null); };
+    if (lightbox) document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [lightbox]);
 
   // highlight code blocks when shown/updated (uses highlight.js if available)
   useEffect(() => {
@@ -258,7 +266,11 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
                 {(data.process && data.process.length > 0) ? (
                   data.process.map((p, i) => (
                     <figure className="process-item" key={i}>
-                      <img src={p.src || p.image} alt={p.caption || `process-${i}`} />
+                      <img
+                        src={p.src || p.image}
+                        alt={p.caption || `process-${i}`}
+                        onClick={() => setLightbox({ src: p.src || p.image, caption: p.caption })}
+                        />
                       {p.caption && <figcaption>{p.caption}</figcaption>}
                     </figure>
                   ))
@@ -267,6 +279,16 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
                 )}
               </div>
             </section>
+
+            {lightbox && (
+              <div className="image-lightbox" onClick={() => setLightbox(null)}>
+                <div className="image-lightbox-inner" onClick={(e) => e.stopPropagation()}>
+                  <button className="image-lightbox-close" onClick={() => setLightbox(null)}>✕</button>
+                  <img src={lightbox.src} alt={lightbox.caption || 'zoomed'} />
+                  {lightbox.caption && <div className="image-lightbox-caption">{lightbox.caption}</div>}
+                </div>
+              </div>
+            )}
 
             {/* TECHNICAL BREAKDOWN (feature cards) */}
             <section className="technical container">
