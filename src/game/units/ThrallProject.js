@@ -7,7 +7,7 @@ export default class ThrallProject extends UnitBase {
     super({
       ...opts,
       faction: opts.faction || "friendly",
-      sprite: opts.sprite || "Icons/linkedinpixel.png",
+      sprite: opts.sprite || "Units/ThrallKnight.png",
       hp: opts.hp ?? 20,
       atk: opts.atk ?? 20,
       move: opts.move ?? 15,
