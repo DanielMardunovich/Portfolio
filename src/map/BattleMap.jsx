@@ -972,15 +972,21 @@ useEffect(() => {
           .map(u => ({ x: u.x, y: u.y }));
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
         setReachableTilesSync(tiles);
-        // Compute attack tiles: all tiles within `movingUnit.range` from any reachable tile
-        // (exclude tiles that are already reachable to avoid overlap)
+        // Compute attack tiles: only project attack range from walkable (low-cost) tiles
+        // so water tiles don't generate a huge red overlay across the map.
+        const MAX_ATTACK_SOURCE_COST = 2;
         const reachableSet = new Set(tiles.map(t => `${t.x},${t.y}`));
         const attackSet = new Set();
         const withinBounds = (x, y) => x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT;
-        const range = (unit?.range ?? movingUnit?.range ?? 1);
+        const range = (unit?.range ?? 1);
 
-        for (const t of tiles) {
-          // iterate over a diamond (Manhattan distance) of radius `range`
+        // Unit's own tile + only walkable reachable tiles generate attack range
+        const attackSources = [{ x: unit.x, y: unit.y }, ...tiles.filter(t => {
+          const cost = getTileWalkCost(mapRef.current[t.y]?.[t.x]);
+          return cost <= MAX_ATTACK_SOURCE_COST;
+        })];
+
+        for (const t of attackSources) {
           for (let dx = -range; dx <= range; dx++) {
             const maxDy = range - Math.abs(dx);
             for (let dy = -maxDy; dy <= maxDy; dy++) {
@@ -988,7 +994,7 @@ useEffect(() => {
               const ny = t.y + dy;
               if (!withinBounds(nx, ny)) continue;
               const key = `${nx},${ny}`;
-              if (reachableSet.has(key)) continue; // skip tiles you can move to
+              if (reachableSet.has(key)) continue;
               attackSet.add(key);
             }
           }
@@ -1096,6 +1102,11 @@ useEffect(() => {
           return;
         }
 
+        // Clear overlays immediately so they disappear as soon as the unit starts walking
+        setReachableTilesSync([]);
+        setAttackTilesSync([]);
+        setCurrentPathSync(null);
+
         // Animate movement to destination (same as AI)
         animateFriendlyMovement(movingUnit, path, () => {
           // Ensure unit is placed at destination and marked as acted after animation
@@ -1172,6 +1183,11 @@ useEffect(() => {
             clearMoveMode();
             return;
           }
+
+          // Clear overlays immediately so they disappear as soon as the unit starts walking
+          setReachableTilesSync([]);
+          setAttackTilesSync([]);
+          setCurrentPathSync(null);
 
           animateFriendlyMovement(movingUnit, path, () => {
             // After movement completes, ensure final position, then apply damage
