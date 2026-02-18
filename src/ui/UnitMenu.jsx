@@ -32,40 +32,68 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
   useLayoutEffect(() => {
     if (!menuRef.current || !position) return;
 
-    const compute = () => {
-      const margin = 8;
-      const menuRect = menuRef.current.getBoundingClientRect();
+    // Reusable helper to compute position next to a unit rect.
+    const computeMenuPosition = (unitRect, menuRect, { offset = 16, offsetY = 8, margin = 8 } = {}) => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
-      let left = position.x;
-      let top = position.y;
+      // default: place to the right of the unit
+      let left = Math.round(unitRect.right + offset);
+      // vertically align near the unit top (small offset)
+      let top = Math.round(unitRect.top + offsetY);
 
-      // If menu would overflow bottom, try to flip above the unit
-      if (top + menuRect.height + margin > vh) {
-        const aboveTop = position.y - menuRect.height - margin;
-        if (aboveTop >= margin) {
-          top = Math.max(margin, position.y - menuRect.height - 12);
-        } else {
-          // clamp so menu fits in viewport
-          top = Math.max(margin, vh - menuRect.height - margin);
-        }
+      // if overflows right, flip to left side of the unit
+      if (left + menuRect.width + margin > vw) {
+        const leftCandidate = Math.round(unitRect.left - offset - menuRect.width);
+        if (leftCandidate >= margin) left = leftCandidate;
+        else left = Math.max(margin, vw - menuRect.width - margin);
       }
 
-      // Ensure menu stays within vertical bounds
-      top = Math.max(margin, Math.min(top, vh - menuRect.height - margin));
+      // if bottom overflows, clamp upward so menu stays visible
+      if (top + menuRect.height + margin > vh) {
+        top = Math.max(margin, vh - menuRect.height - margin);
+      }
 
-      // Ensure horizontal stays within viewport
-      left = Math.max(margin, Math.min(left, vw - menuRect.width - margin));
+      // never allow negative coords
+      left = Math.max(margin, left);
+      top = Math.max(margin, top);
 
-      setComputedPos({ left, top });
+      return { left, top };
+    };
+
+    const compute = () => {
+      const menuRect = menuRef.current.getBoundingClientRect();
+
+      // Accept several shapes for `position`: DOMRect-like, {x,y}, or an element
+      let unitRect = null;
+      if (position && typeof position.left === 'number' && typeof position.top === 'number' && typeof position.width === 'number') {
+        unitRect = position;
+      } else if (position && typeof position.x === 'number' && typeof position.y === 'number') {
+        const px = Math.round(position.x);
+        const py = Math.round(position.y);
+        unitRect = { left: px, top: py, right: px, bottom: py, width: 0, height: 0 };
+      } else if (position && position.getBoundingClientRect && typeof position.getBoundingClientRect === 'function') {
+        unitRect = position.getBoundingClientRect();
+      } else if (unit && unit.element && unit.element.getBoundingClientRect) {
+        // fallback if unit exposes a DOM element reference
+        unitRect = unit.element.getBoundingClientRect();
+      }
+
+      if (!unitRect) unitRect = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
+
+      const pos = computeMenuPosition(unitRect, menuRect, { offset: 16, offsetY: 8, margin: 8 });
+      setComputedPos({ left: pos.left, top: pos.top });
     };
 
     compute();
-    window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
+    window.addEventListener('resize', compute);
+    window.addEventListener('scroll', compute, { passive: true });
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('scroll', compute);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position?.x, position?.y, unit?.id]);
+  }, [position, unit?.id]);
 
   if (!unit || !position) return null;
 
@@ -85,6 +113,15 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
         top: `${computedPos.top}px`
       }}
     >
+      {/* Top full-width Project info bar */}
+      <button
+        className="unit-menu-option unit-menu-project-top project-info"
+        onClick={() => handleAction("info")}
+      >
+        <span className="menu-icon">ⓘ</span>
+        <span>Project info</span>
+      </button>
+
       <div className="unit-menu-header">
         <div className="unit-menu-name">{unit.meta?.info?.name || unit.type || unit.id}</div>
         <div className="unit-menu-info-item">
@@ -112,13 +149,6 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
             <span className="menu-icon">⛓</span>
             <span>Link</span>
           </button>
-          <button 
-            className="unit-menu-option"
-            onClick={() => handleAction("info")}
-          >
-            <span className="menu-icon">ⓘ</span>
-            <span>Info</span>
-          </button>
         </>
       ) : (
         // Friendly unit options
@@ -138,13 +168,6 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
           >
             <span className="menu-icon">⏳</span>
             <span>Wait</span>
-          </button>
-          <button 
-            className="unit-menu-option"
-            onClick={() => handleAction("info")}
-          >
-            <span className="menu-icon">ⓘ</span>
-            <span>Info</span>
           </button>
         </>
       )}

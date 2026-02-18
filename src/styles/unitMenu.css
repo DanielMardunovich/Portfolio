@@ -3,7 +3,7 @@
   background: linear-gradient(135deg, #2a3d5a 0%, #1e2836 100%);
   border: 3px solid #8ba3c7;
   border-radius: 4px;
-  padding: 8px;
+  padding: 2px 8px 8px 8px;
   min-width: 160px;
   box-shadow: 
     0 4px 16px rgba(0, 0, 0, 0.5),
@@ -30,7 +30,7 @@
 }
 
 .unit-menu-header {
-  padding: 6px 8px;
+  padding: 12px 8px 8px 8px;
   margin-bottom: 4px;
 }
 
@@ -43,6 +43,21 @@
   letter-spacing: 1px;
   margin-bottom: 6px;
 }
+
+/* Top full-width Project info bar */
+.unit-menu-project-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin: 0;
+  border-radius: 4px 4px 0 0;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+}
+.unit-menu-project-top .menu-icon { font-size: 14px; }
 
 .unit-menu-info-item {
   display: flex;
@@ -97,6 +112,30 @@
   border-color: #6a8dba;
   transform: translateX(2px);
   box-shadow: -2px 0 0 #6a8dba;
+}
+
+/* Highlighted Project Info button */
+.unit-menu-option.project-info, .unit-menu-option.unit-menu-info,
+.unit-menu-project-top.project-info, .unit-menu-project-top.unit-menu-info {
+  background: linear-gradient(180deg, #ffd54a 0%, #ffb703 100%);
+  border-color: #b78634;
+  border-width: 2px;
+  color: #111;
+  font-weight: 900;
+  box-shadow: 0 8px 24px rgba(255, 183, 3, 0.12), inset 0 -6px 12px rgba(0,0,0,0.08);
+  padding: 12px 14px;
+  font-size: 11px;
+}
+.unit-menu-option.project-info .menu-icon, .unit-menu-option.unit-menu-info .menu-icon,
+.unit-menu-project-top.project-info .menu-icon, .unit-menu-project-top.unit-menu-info .menu-icon {
+  color: #111;
+}
+.unit-menu-option.project-info:hover:not(:disabled), .unit-menu-option.unit-menu-info:hover:not(:disabled),
+.unit-menu-project-top.project-info:hover:not(:disabled), .unit-menu-project-top.unit-menu-info:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffe58a 0%, #ffc857 100%);
+  border-color: #e0a82a;
+  transform: translateX(2px) scale(1.01);
+  box-shadow: 0 10px 30px rgba(255, 183, 3, 0.16), -2px 0 0 rgba(0,0,0,0.05);
 }
 
 .unit-menu-option:active:not(:disabled) {
