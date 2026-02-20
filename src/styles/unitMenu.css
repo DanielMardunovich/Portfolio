@@ -1,152 +1,156 @@
 .unit-menu {
   position: fixed;
-  background: linear-gradient(135deg, #2a3d5a 0%, #1e2836 100%);
-  border: 3px solid #8ba3c7;
-  border-radius: 4px;
-  padding: 2px 8px 8px 8px;
-  min-width: 160px;
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, var(--section), var(--card));
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0;
+  min-width: 220px;
+  max-width: 220px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.06);
   z-index: 1000;
   font-family: 'Press Start 2P', monospace;
-  font-size: 11px;
   user-select: none;
-  animation: menuSlideIn 0.15s ease-out;
-  /* keep menu from growing past viewport and allow internal scrolling */
+  animation: menuSlideIn 0.18s cubic-bezier(0.2, 0, 0.2, 1);
   max-height: calc(100vh - 16px);
-  overflow: auto;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 @keyframes menuSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ── Project info — full-width top bar ── */
+.unit-menu-project-top.project-info,
+.unit-menu-option.project-info {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 18px;
+  margin: 0;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  background: var(--accent);
+  color: var(--bg);
+  -webkit-text-fill-color: var(--bg);
+  text-shadow: none;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  transition: filter 0.12s ease;
+}
+
+.unit-menu-project-top.project-info:hover,
+.unit-menu-option.project-info:hover {
+  filter: brightness(1.12);
+}
+
+.unit-menu-project-top.project-info .menu-icon,
+.unit-menu-option.project-info .menu-icon {
+  color: var(--bg);
+  -webkit-text-fill-color: var(--bg);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ── Header: unit name + stats ── */
 .unit-menu-header {
-  padding: 12px 8px 8px 8px;
-  margin-bottom: 4px;
+  padding: 14px 16px 10px 16px;
+  background: rgba(0,0,0,0.15);
+  border-bottom: 1px solid var(--border);
 }
 
 .unit-menu-name {
-  color: #fff8e7;
-  font-weight: bold;
-  font-size: 12px;
+  color: var(--text-primary);
   font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
+  word-break: break-all;
+  line-height: 1.7;
 }
-
-/* Top full-width Project info bar */
-.unit-menu-project-top {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  margin: 0;
-  border-radius: 4px 4px 0 0;
-  text-align: left;
-  cursor: pointer;
-  border: none;
-}
-.unit-menu-project-top .menu-icon { font-size: 14px; }
 
 .unit-menu-info-item {
   display: flex;
   justify-content: space-between;
-  color: #e8f0ff;
-  padding: 2px 0;
+  align-items: center;
+  padding: 4px 0;
 }
 
 .unit-info-label {
-  color: #8ba3c7;
-  font-size: 10px;
+  color: var(--text-secondary);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
 }
 
 .unit-info-value {
-  color: #4ade80;
+  color: var(--accent);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
   font-weight: bold;
 }
 
 .unit-menu-divider {
-  height: 2px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    #8ba3c7 20%,
-    #8ba3c7 80%,
-    transparent
-  );
-  margin: 8px 0 6px 0;
+  height: 1px;
+  background: var(--border);
+  margin: 0;
 }
 
+/* ── Action buttons ── */
 .unit-menu-option {
-  width: 100%;
-  padding: 10px 12px;
-  margin: 2px 0;
-  background: linear-gradient(180deg, #3a4d6a 0%, #2a3d5a 100%);
-  border: 2px solid #4a5d7a;
-  border-radius: 2px;
-  color: #e8f0ff;
+  width: calc(100% - 16px);
+  box-sizing: border-box;
+  padding: 13px 16px;
+  margin: 3px 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
-  transition: all 0.1s ease;
-  position: relative;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+  transition: background 0.1s ease, color 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
   text-align: left;
 }
 
 .unit-menu-option:hover:not(:disabled) {
-  background: linear-gradient(180deg, #4a6d9a 0%, #3a5d8a 100%);
-  border-color: #6a8dba;
-  transform: translateX(2px);
-  box-shadow: -2px 0 0 #6a8dba;
-}
-
-/* Highlighted Project Info button */
-.unit-menu-option.project-info, .unit-menu-option.unit-menu-info,
-.unit-menu-project-top.project-info, .unit-menu-project-top.unit-menu-info {
-  background: linear-gradient(180deg, #ffd54a 0%, #ffb703 100%);
-  border-color: #b78634;
-  border-width: 2px;
-  color: #111;
-  font-weight: 900;
-  box-shadow: 0 8px 24px rgba(255, 183, 3, 0.12), inset 0 -6px 12px rgba(0,0,0,0.08);
-  padding: 12px 14px;
-  font-size: 11px;
-}
-.unit-menu-option.project-info .menu-icon, .unit-menu-option.unit-menu-info .menu-icon,
-.unit-menu-project-top.project-info .menu-icon, .unit-menu-project-top.unit-menu-info .menu-icon {
-  color: #111;
-}
-.unit-menu-option.project-info:hover:not(:disabled), .unit-menu-option.unit-menu-info:hover:not(:disabled),
-.unit-menu-project-top.project-info:hover:not(:disabled), .unit-menu-project-top.unit-menu-info:hover:not(:disabled) {
-  background: linear-gradient(180deg, #ffe58a 0%, #ffc857 100%);
-  border-color: #e0a82a;
-  transform: translateX(2px) scale(1.01);
-  box-shadow: 0 10px 30px rgba(255, 183, 3, 0.16), -2px 0 0 rgba(0,0,0,0.05);
+  background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 80%, black) 100%);
+  color: var(--bg);
+  -webkit-text-fill-color: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  transform: translateY(1px);
 }
 
 .unit-menu-option:active:not(:disabled) {
-  transform: translateX(1px);
-  background: linear-gradient(180deg, #2a4d6a 0%, #1a3d5a 100%);
+  transform: translateY(2px);
+  box-shadow: none;
 }
 
 .unit-menu-option:disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
-  color: #6a7d9a;
+  box-shadow: none;
+}
+
+/* last button gets a little extra bottom margin */
+.unit-menu-option:last-child {
+  margin-bottom: 8px;
 }
 
 .menu-icon {
@@ -154,46 +158,42 @@
   width: 16px;
   text-align: center;
   flex-shrink: 0;
+  color: inherit;
 }
 
+/* ── Cancel ── */
 .unit-menu-cancel {
-  margin-top: 6px;
-  background: linear-gradient(180deg, #5a3a3a 0%, #4a2a2a 100%);
-  border-color: #7a4a4a;
-  /* keep cancel visible when menu is tall */
-  position: sticky;
-  bottom: 8px;
-  z-index: 2;
+  color: #e07070;
+  border-color: rgba(224, 112, 112, 0.3);
 }
 
-.unit-menu-cancel:hover {
-  background: linear-gradient(180deg, #7a4a4a 0%, #6a3a3a 100%);
-  border-color: #9a6a6a;
+.unit-menu-cancel .menu-icon {
+  color: #e07070;
 }
 
-/* Mobile adjustments */
+.unit-menu-cancel:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e07070 0%, #b04040 100%) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  border-color: #e07070 !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.4) !important;
+  transform: translateY(1px) !important;
+}
+
+/* ── Mobile ── */
 @media (max-width: 768px) {
   .unit-menu {
-    font-size: 10px;
-    min-width: 140px;
-    padding: 6px;
+    min-width: 200px;
+    max-width: 200px;
   }
-
   .unit-menu-option {
-    padding: 8px 10px;
     font-size: 9px;
-  }
-
-  .menu-icon {
-    font-size: 11px;
+    padding: 12px 14px;
   }
 }
 
-/* Touch-friendly sizing */
 @media (hover: none) and (pointer: coarse) {
   .unit-menu-option {
-    padding: 12px;
-    font-size: 10px;
-    min-height: 44px; /* iOS recommended touch target */
+    min-height: 48px;
   }
 }

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import ProjectsMenu from "../ui/ProjectsMenu";
+import "../styles/projectsMenu.css";
 import { useGame } from "../game/GameContext";
 import { PHASES, TURN } from "../game/phases";
 import { createUnit, FACTION, UNIT_SPRITES, createUnitFromType, listRegisteredUnitTypes } from "../game/units";
@@ -104,6 +106,8 @@ export default function BattleMap() {
   const [infoPanelProject, setInfoPanelProject] = useState(null);
   const [infoPanelUnit, setInfoPanelUnit] = useState(null);
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
+  // ProjectsMenu state
+  const [projectsMenuOpen, setProjectsMenuOpen] = useState(true); // Always start open
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [bubblePos, setBubblePos] = useState(null);
   const [bubbleUnitId, setBubbleUnitId] = useState(null);
@@ -111,26 +115,28 @@ export default function BattleMap() {
   // `setMovingUnit` from inside another state updater (prevents setState-in-render)
   const pendingMovingUpdateRef = useRef(null);
 
-  // Example: Define your portfolio projects and contact methods here
-  // Friendly units = portfolio projects, enemies = you/contact methods
-  // To add more, add objects to these arrays and link them to units on the map
-  const portfolioProjects = [
-    {
-      title: "Pixel Art RPG Battle System",
-      description: "A turn-based RPG battle system demo built with React, Vite, and custom pathfinding. Features animated tile placement, dynamic scaling, and AI movement.",
-      image: "/Icons/project1.png", // Place your image in public/Icons/
-      links: [
-        { label: "GitHub", url: "https://github.com/yourusername/project1" },
-        { label: "Live Demo", url: "https://your-portfolio.com/project1" }
-      ],
-      highlights: [
-        "React + Vite frontend",
-        "A* pathfinding for unit movement",
-        "Procedural map generation"
-      ]
-    },
-    // Add more project objects here
-  ];
+  // Dynamically populate portfolioProjects from all registered friendly units
+  const portfolioProjects = listRegisteredUnitTypes()
+    .map((typeName) => {
+      try {
+        const unit = createUnitFromType(typeName, { id: typeName + "_preview" });
+        if (unit.faction !== FACTION.FRIENDLY) return null;
+        // Prefer meta.info, fallback to some defaults
+        const info = unit.meta?.info || {};
+        return {
+          title: info.title || unit.type || typeName,
+          description: info.description || '',
+          image: (info.image || (unit.meta?.images && unit.meta.images[0]) || ''),
+          links: info.links || [],
+          highlights: info.highlights || [],
+          // Optionally include the unit type for reference
+          unitType: typeName
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
   const contactMethods = [
     {
       title: "Contact Me",
@@ -1228,6 +1234,32 @@ useEffect(() => {
 
   return (
     <>
+      {/* Projects Menu Toggle Button */}
+      <button
+        className="projects-menu-toggle"
+        style={{ left: projectsMenuOpen ? 340 : 0 }}
+        onClick={() => setProjectsMenuOpen((v) => !v)}
+        aria-label={projectsMenuOpen ? "Close Projects Menu" : "Open Projects Menu"}
+      >
+        <span>{projectsMenuOpen ? "←" : "→"}</span>
+      </button>
+      {/* Projects Popout Menu */}
+      <ProjectsMenu
+        projects={portfolioProjects}
+        isOpen={projectsMenuOpen}
+        onClose={() => setProjectsMenuOpen(false)}
+        onProjectClick={(proj) => {
+          // Find the actual unit definition for this project
+          let unit = null;
+          try {
+            unit = createUnitFromType(proj.unitType, { id: proj.unitType + "_preview" });
+          } catch {}
+          setInfoPanelUnit(unit);
+          setInfoPanelProject(null); // clear project prop to prefer unit
+          setInfoPanelOpen(true);
+          setProjectsMenuOpen(false);
+        }}
+      />
       <canvas ref={canvasRef} className={`battle-map ${phase}`} />
       <SpeechBubble
         visible={bubbleVisible}
