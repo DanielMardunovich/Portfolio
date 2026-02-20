@@ -13,17 +13,16 @@ export default class CoffeeShopProject extends UnitBase {
       move: opts.move ?? 15,
       range: opts.range ?? 3,
       images: opts.images || [
-        "GameLogos/CoffeeShop.png",
-        "CoffeeShopImages/CourtYard.png"
+        "CoffeeShopGameImages/Slide1.png",
       ],
       info: opts.info || {
-  name: "CoffeeShopSideProject",
+  name: "CO-OP CAFÉ MANAGEMENT GAME",
   role: "AI Engineer",
   summary: "Temporary description",
          details: [
            { label: "Date", value: "Oct 2025" },
            { label: "Duration", value: "In progress" },
-           { label: "Position", value: "AI Engineer" },
+           { label: "Position", value: "Anything to do with AI" },
            { label: "Languages", value: "C++" },
            { label: "Engine", value: "Unreal" },
          ],
@@ -37,11 +36,10 @@ export default class CoffeeShopProject extends UnitBase {
   ],
   features: [
     {
-      title: "Temporary Feature",
-      text: "Temporary description of a feature.",
+      title: "GOAP Planner with Hamming Distance Heuristic",
+      text: `The core of the system. Uses a min-heap priority queue for O(log n) node selection, Hamming distance as the heuristic across a multi-typed world state, and a closed set to avoid re-exploring equivalent states. Thread-safe via mutex, with async planning support for agents with large action sets.`,
       codeSamples: [
-        { label: ".h", filename: "AIManager.h", url: "ThrallCode/AIManager.h", lang: "cpp" },
-        { label: ".cpp", filename: "AIManager.cpp", url: "ThrallCode/AIManager.cpp", lang: "cpp" }
+        { label: "MainLoop", filename: "MainLoop.cpp", url: "ThrallCode/MainLoop.cpp", lang: "cpp" },
       ]
     }
   ]
@@ -51,4 +49,4 @@ export default class CoffeeShopProject extends UnitBase {
 }
 
 // register this example so it can be created by type name
-registerUnitType("CoffeeShopProject", CoffeeShopProject);
+registerUnitType("CoopCafeManagementGame", CoffeeShopProject);
