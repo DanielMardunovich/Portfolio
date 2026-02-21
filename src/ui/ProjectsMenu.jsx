@@ -6,7 +6,7 @@ export default function ProjectsMenu({ projects, isOpen, onClose, onProjectClick
     <div className={`projects-menu${isOpen ? " open" : ""}`}>  
       <div className="projects-menu-header">
         <span className="projects-menu-title">Projects</span>
-        <button className="projects-menu-close" onClick={onClose}>✕</button>
+
       </div>
       <div className="projects-menu-list">
         {projects.map((proj, idx) => (

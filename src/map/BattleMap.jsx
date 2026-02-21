@@ -68,6 +68,7 @@ export default function BattleMap() {
   const mapRef = useRef(null);
 
   const cameraRef = useRef({ x: 0, y: 0 });
+  const scrollOffsetRef = useRef({ x: 0, y: 0 }); // sub-tile pixel offset for smooth scrolling
   const viewRef = useRef(getViewSize());
 
   const cursorRef = useRef({ x: 0, y: 0 });
@@ -77,6 +78,7 @@ export default function BattleMap() {
   const shakeRef = useRef(new Map());
   const damageNumbersRef = useRef([]);
   const imagesLoadedRef = useRef(false);
+  const mapCacheRef = useRef(null); // offscreen canvas with full map pre-rendered
   const mapRevealStartRef = useRef(0);
   const mapRevealTimeRef = useRef(0);
   const mapRevealRafRef = useRef(null);
@@ -306,6 +308,27 @@ export default function BattleMap() {
     canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
   };
 
+  // Pre-render entire map to offscreen canvas once — scrolling becomes a fast blit.
+  const buildMapCache = () => {
+    if (!mapRef.current || !tilesetRef.current || !imagesLoadedRef.current) return;
+    const offscreen = document.createElement("canvas");
+    offscreen.width  = MAP_WIDTH  * TILE_SIZE;
+    offscreen.height = MAP_HEIGHT * TILE_SIZE;
+    const octx = offscreen.getContext("2d");
+    drawMap(
+      octx,
+      mapRef.current,
+      tilesetRef.current,
+      { x: 0, y: 0 },
+      { tilesX: MAP_WIDTH, tilesY: MAP_HEIGHT },
+      MAP_WIDTH,
+      MAP_HEIGHT,
+      null,
+      null
+    );
+    mapCacheRef.current = offscreen;
+  };
+
 const redraw = () => {
     if (!imagesLoadedRef.current || !mapRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
@@ -341,18 +364,44 @@ const redraw = () => {
     damageNumbersRef.current = damageNumbersRef.current.filter(d => (nowForDmg - d.start) < d.duration);
 
     const revealTime = phase === PHASES.MAP_INTRO ? mapRevealTimeRef.current : null;
-    drawMap(
-      ctx,
-      mapRef.current,
-      tilesetRef.current,
-      cameraRef.current,
-      viewRef.current,
-      MAP_WIDTH,
-      MAP_HEIGHT,
-      revealTime,
-      { staggerMs: REVEAL_STAGGER_MS, dropDurationMs: REVEAL_DROP_DURATION_MS, startYOffset: REVEAL_START_Y_OFFSET }
-    );
+    if (revealTime !== null || !mapCacheRef.current) {
+      // Reveal animation or cache not ready: draw tile-by-tile
+      drawMap(
+        ctx,
+        mapRef.current,
+        tilesetRef.current,
+        cameraRef.current,
+        viewRef.current,
+        MAP_WIDTH,
+        MAP_HEIGHT,
+        revealTime,
+        { staggerMs: REVEAL_STAGGER_MS, dropDurationMs: REVEAL_DROP_DURATION_MS, startYOffset: REVEAL_START_Y_OFFSET }
+      );
+    } else {
+      // Fast path: single blit using continuous pixel offset for smooth scrolling
+      const cam = cameraRef.current;
+      const off = scrollOffsetRef.current;
+      const view = viewRef.current;
+      // src: pixel position in the full offscreen map
+      const srcX = cam.x * TILE_SIZE + off.x;
+      const srcY = cam.y * TILE_SIZE + off.y;
+      ctx.drawImage(
+        mapCacheRef.current,
+        srcX,
+        srcY,
+        view.tilesX * TILE_SIZE,
+        view.tilesY * TILE_SIZE,
+        0, 0,
+        view.tilesX * TILE_SIZE,
+        view.tilesY * TILE_SIZE
+      );
+    }
     
+    // Shift context by sub-tile scroll offset so units/overlays align with the map blit
+    const scrollOff = scrollOffsetRef.current;
+    ctx.save();
+    ctx.translate(-scrollOff.x, -scrollOff.y);
+
     // Only draw units after tile animation completes
     if (phase !== PHASES.MAP_INTRO) {
       drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets);
@@ -360,7 +409,6 @@ const redraw = () => {
     }
 
     drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
-    drawGrid(ctx, viewRef.current.tilesX, viewRef.current.tilesY);
 
     if (moveModeRef.current && movingUnitRef.current) {
       // Filter out the unit's own tile from the blue movement overlay
@@ -389,6 +437,11 @@ const redraw = () => {
 
     // Draw floating damage numbers above everything
     drawDamageNumbers(ctx, damageNumbersRef.current, cameraRef.current);
+
+    // Grid drawn inside translate so it scrolls with the map
+    drawGrid(ctx, viewRef.current.tilesX + 1, viewRef.current.tilesY + 1);
+
+    ctx.restore();
   };
 
   // Animation loop: when there are idle units or active hit/shake animations,
@@ -440,6 +493,7 @@ const redraw = () => {
       if (loaded < 2) return;
       imagesLoadedRef.current = true;
       mapRef.current = generateValidatedMap(generateMap, MAP_WIDTH, MAP_HEIGHT);
+      buildMapCache(); // pre-render full map once for fast scroll blitting
 
       mapRevealStartRef.current = performance.now();
       mapRevealTimeRef.current = 0;
@@ -959,6 +1013,72 @@ useEffect(() => {
   return () => window.removeEventListener("resize", onResize);
 }, []);
 
+  // Edge-scroll: move camera when mouse is near screen edges
+  useEffect(() => {
+    const EDGE_SIZE = 80;    // px from edge that triggers scroll
+    const MAX_SPEED = 0.15;  // tiles per frame at full edge
+    let mouseX = -1;
+    let mouseY = -1;
+    let rafId = null;
+
+    const onMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    };
+
+    const tick = () => {
+      rafId = requestAnimationFrame(tick);
+      if (mouseX < 0) return;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const view = viewRef.current;
+      let dx = 0;
+      let dy = 0;
+
+      if (mouseX < EDGE_SIZE)           dx = -MAX_SPEED * (1 - mouseX / EDGE_SIZE);
+      else if (mouseX > vw - EDGE_SIZE) dx =  MAX_SPEED * (1 - (vw - mouseX) / EDGE_SIZE);
+      if (mouseY < EDGE_SIZE)           dy = -MAX_SPEED * (1 - mouseY / EDGE_SIZE);
+      else if (mouseY > vh - EDGE_SIZE) dy =  MAX_SPEED * (1 - (vh - mouseY) / EDGE_SIZE);
+
+      if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return;
+
+      const cam = cameraRef.current;
+      const off = scrollOffsetRef.current;
+
+      // Accumulate in pixel space for smooth scrolling
+      let newOffX = off.x + dx * TILE_SIZE;
+      let newOffY = off.y + dy * TILE_SIZE;
+
+      // Advance camera tile when offset exceeds a full tile
+      let newCamX = cam.x;
+      let newCamY = cam.y;
+      while (newOffX >= TILE_SIZE  && newCamX < MAP_WIDTH  - view.tilesX) { newOffX -= TILE_SIZE; newCamX++; }
+      while (newOffX <= -TILE_SIZE && newCamX > 0)                         { newOffX += TILE_SIZE; newCamX--; }
+      while (newOffY >= TILE_SIZE  && newCamY < MAP_HEIGHT - view.tilesY)  { newOffY -= TILE_SIZE; newCamY++; }
+      while (newOffY <= -TILE_SIZE && newCamY > 0)                         { newOffY += TILE_SIZE; newCamY--; }
+
+      // Clamp offset at map edges
+      if (newCamX === 0 && newOffX < 0)                      newOffX = 0;
+      if (newCamX === MAP_WIDTH  - view.tilesX && newOffX > 0) newOffX = 0;
+      if (newCamY === 0 && newOffY < 0)                      newOffY = 0;
+      if (newCamY === MAP_HEIGHT - view.tilesY && newOffY > 0) newOffY = 0;
+
+      if (newCamX !== cam.x || newCamY !== cam.y || newOffX !== off.x || newOffY !== off.y) {
+        cameraRef.current = { x: newCamX, y: newCamY };
+        scrollOffsetRef.current = { x: newOffX, y: newOffY };
+        redraw();
+      }
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   const handleMenuSelect = (action, unit) => {
     switch(action) {
       case "move":
@@ -1040,6 +1160,7 @@ useEffect(() => {
         setInfoPanelUnit(unit);
         setInfoPanelProject(null);
         setInfoPanelOpen(true);
+        setProjectsMenuOpen(false);
         break;
       case "link":
         // Open the unit's configured link(s) if available.
@@ -1237,7 +1358,7 @@ useEffect(() => {
       {/* Projects Menu Toggle Button */}
       <button
         className="projects-menu-toggle"
-        style={{ left: projectsMenuOpen ? 340 : 0 }}
+        style={{ left: projectsMenuOpen ? 300 : 0 }}
         onClick={() => setProjectsMenuOpen((v) => !v)}
         aria-label={projectsMenuOpen ? "Close Projects Menu" : "Open Projects Menu"}
       >

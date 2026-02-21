@@ -36,9 +36,9 @@ Shared world knowledge is managed through a World Subsystem, giving all agents a
 The separation between read-only Data Asset templates and mutable per-agent runtime instances ensures no shared state is corrupted at runtime, making the system safe to use across any number of simultaneously active agents.`,
   gif: "CoffeeShopGameImages/GOAPGif.gif",
   process: [
-    { src: "CoffeeShopGameImages/GOAPPlanning.png", caption: `Temp image` },
-    { src: "CoffeeShopGameImages/ActionExample.png", caption: `Temp image` },
-    { src: "CoffeeShopGameImages/ActionCompletedLogic.png", caption: `Temp image` }
+    { src: "CoffeeShopGameImages/GOAPPlanning.png", caption: `Early architecture sketch of the GOAP planning layer and state-driven behavior framework. The diagram outlines goal evaluation, action sequencing, failure handling, and environmental interactions that structured AI decision-making and reactive flow.` },
+    { src: "CoffeeShopGameImages/ActionExample.png", caption: `Example action configuration from the GOAP system. This panel defines the “Drink Coffee” action, including cost evaluation, state effects, execution parameters, animation triggers, and completion tags that feed back into the planner’s decision loop.` },
+    { src: "CoffeeShopGameImages/ActionCompletedLogic.png", caption: `Blueprint implementation of a GOAP action resolution flow. The graph handles post-action completion events, state updates, object binding, physics toggling, attachment logic, and interaction notifications that synchronize world state with planner outcomes.` }
   ],
   features: [
     {

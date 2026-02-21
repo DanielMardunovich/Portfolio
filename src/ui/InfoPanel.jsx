@@ -6,9 +6,16 @@ import "../styles/infoPanel.css";
 export default function InfoPanel({ project, unit, isOpen, onClose }) {
   const panelRef = useRef(null);
   const [closing, setClosing] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (isOpen) setClosing(false);
+    if (isOpen) {
+      setClosing(false);
+      const raf = requestAnimationFrame(() => setIsVisible(true));
+      return () => cancelAnimationFrame(raf);
+    } else {
+      setIsVisible(false);
+    }
   }, [isOpen]);
 
   useEffect(() => {
@@ -153,7 +160,7 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
     <>
       {(isOpen || closing) && <div className="info-panel-backdrop" onClick={handleClose}></div>}
       <div
-        className={`info-panel${isOpen && !closing ? " open" : ""}${closing ? " closing" : ""}`}
+        className={`info-panel${isVisible && !closing ? " open" : ""}${closing ? " closing" : ""}`}
         ref={panelRef}
       >
         <div className="info-panel-content">
