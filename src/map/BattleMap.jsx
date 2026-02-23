@@ -68,7 +68,6 @@ export default function BattleMap() {
   const mapRef = useRef(null);
 
   const cameraRef = useRef({ x: 0, y: 0 });
-  const scrollOffsetRef = useRef({ x: 0, y: 0 }); // sub-tile pixel offset for smooth scrolling
   const viewRef = useRef(getViewSize());
 
   const cursorRef = useRef({ x: 0, y: 0 });
@@ -78,12 +77,10 @@ export default function BattleMap() {
   const shakeRef = useRef(new Map());
   const damageNumbersRef = useRef([]);
   const imagesLoadedRef = useRef(false);
-  const mapCacheRef = useRef(null); // offscreen canvas with full map pre-rendered
   const mapRevealStartRef = useRef(0);
   const mapRevealTimeRef = useRef(0);
   const mapRevealRafRef = useRef(null);
   const mapRevealTotalRef = useRef(0);
-  const rafRef = useRef(null);
 
   const [menuUnit, setMenuUnit] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
@@ -94,89 +91,56 @@ export default function BattleMap() {
   const [enemySelectedUnit, setEnemySelectedUnit] = useState(null);
   const [enemyReachableTiles, setEnemyReachableTiles] = useState([]);
   const [attackTiles, setAttackTiles] = useState([]);
-
-  // Refs that mirror the above state so the rAF animation loop always reads
-  // fresh values (state captured in a closure goes stale across frames).
-  const moveModeRef = useRef(false);
-  const movingUnitRef = useRef(null);
-  const reachableTilesRef = useRef([]);
-  const currentPathRef = useRef(null);
-  const enemySelectedUnitRef = useRef(null);
-  const enemyReachableTilesRef = useRef([]);
-  const attackTilesRef = useRef([]);
   // InfoPanel state for portfolio project info
   const [infoPanelProject, setInfoPanelProject] = useState(null);
   const [infoPanelUnit, setInfoPanelUnit] = useState(null);
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
-  // ProjectsMenu state
-  const [projectsMenuOpen, setProjectsMenuOpen] = useState(true); // Always start open
+  const [projectsMenuOpen, setProjectsMenuOpen] = useState(true);
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [bubblePos, setBubblePos] = useState(null);
   const [bubbleUnitId, setBubbleUnitId] = useState(null);
-  // ref to hold a pending movingUnit update when we need to avoid calling
-  // `setMovingUnit` from inside another state updater (prevents setState-in-render)
-  const pendingMovingUpdateRef = useRef(null);
 
-  // Dynamically populate portfolioProjects from all registered friendly units
-  const portfolioProjects = listRegisteredUnitTypes()
-    .map((typeName) => {
-      try {
-        const unit = createUnitFromType(typeName, { id: typeName + "_preview" });
-        if (unit.faction !== FACTION.FRIENDLY) return null;
-        // Prefer meta.info, fallback to some defaults
-        const info = unit.meta?.info || {};
-        return {
-          title: info.title || unit.type || typeName,
-          description: info.description || '',
-          image: (info.image || (unit.meta?.images && unit.meta.images[0]) || ''),
-          links: info.links || [],
-          highlights: info.highlights || [],
-          // Optionally include the unit type for reference
-          unitType: typeName
-        };
-      } catch {
-        return null;
+  // Dynamically populate `portfolioProjects` from registered friendly unit types
+  const portfolioProjects = (() => {
+    const projects = [];
+    try {
+      const types = listRegisteredUnitTypes();
+      for (const typeName of types) {
+        try {
+          const def = createUnitFromType(typeName, { id: typeName + "_preview" });
+          if (def.faction !== FACTION.FRIENDLY) continue;
+          const meta = def.meta || {};
+          const info = meta.info || {};
+          projects.push({
+            title: info.name || typeName,
+            image: (meta.images && meta.images[0]) || null,
+            unitType: typeName,
+            description: info.summary || info.description || "",
+            links: info.links || []
+          });
+        } catch (e) {
+          // skip problematic unit types
+          console.warn("Failed to build project from unit type", typeName, e);
+        }
       }
-    })
-    .filter(Boolean);
-  const contactMethods = [
-    {
-      title: "Contact Me",
-      description: "Let's connect! You can reach me via LinkedIn, email, or other platforms.",
-      image: "/Icons/contact.png",
-      links: [
-        { label: "LinkedIn", url: "https://linkedin.com/in/yourprofile" },
-        { label: "Email", url: "mailto:your@email.com" }
-      ],
-      highlights: [
-        "Open to collaboration",
-        "Available for freelance work"
-      ]
-    },
-    // Add more contact/enemy objects here
-  ];
+    } catch (e) {
+      console.warn("Failed to list registered unit types", e);
+    }
+    return projects;
+  })();
+  const contactMethods = [];
   const enemyTurnHandledRef = useRef(false);
   const isAnimatingEnemyRef = useRef(false);
   const enemyAnimationTimeoutRef = useRef(null);
   const friendlyAnimationTimeoutRef = useRef(null);
 
-  // Synced setters — always update the ref immediately so the rAF loop sees the
-  // latest value, then update React state so components re-render as normal.
-  const setMoveModeSync = (val) => { moveModeRef.current = val; setMoveMode(val); };
-  const setMovingUnitSync = (val) => { movingUnitRef.current = val; setMovingUnit(val); };
-  const setReachableTilesSync = (val) => { reachableTilesRef.current = val; setReachableTiles(val); };
-  const setCurrentPathSync = (val) => { currentPathRef.current = val; setCurrentPath(val); };
-  const setEnemySelectedUnitSync = (val) => { enemySelectedUnitRef.current = val; setEnemySelectedUnit(val); };
-  const setEnemyReachableTilesSync = (val) => { enemyReachableTilesRef.current = val; setEnemyReachableTiles(val); };
-  const setAttackTilesSync = (val) => { attackTilesRef.current = val; setAttackTiles(val); };
-
   // Helper function to clear move mode state
   const clearMoveMode = () => {
-    setMoveModeSync(false);
-    setMovingUnitSync(null);
-    setReachableTilesSync([]);
-    setCurrentPathSync(null);
-    setAttackTilesSync([]);
+    setMoveMode(false);
+    setMovingUnit(null);
+    setReachableTiles([]);
+    setCurrentPath(null);
+    setAttackTiles([]);
     selectedUnitRef.current = null;
   };
 
@@ -308,28 +272,7 @@ export default function BattleMap() {
     canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
   };
 
-  // Pre-render entire map to offscreen canvas once — scrolling becomes a fast blit.
-  const buildMapCache = () => {
-    if (!mapRef.current || !tilesetRef.current || !imagesLoadedRef.current) return;
-    const offscreen = document.createElement("canvas");
-    offscreen.width  = MAP_WIDTH  * TILE_SIZE;
-    offscreen.height = MAP_HEIGHT * TILE_SIZE;
-    const octx = offscreen.getContext("2d");
-    drawMap(
-      octx,
-      mapRef.current,
-      tilesetRef.current,
-      { x: 0, y: 0 },
-      { tilesX: MAP_WIDTH, tilesY: MAP_HEIGHT },
-      MAP_WIDTH,
-      MAP_HEIGHT,
-      null,
-      null
-    );
-    mapCacheRef.current = offscreen;
-  };
-
-const redraw = () => {
+  const redraw = () => {
     if (!imagesLoadedRef.current || !mapRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -364,44 +307,18 @@ const redraw = () => {
     damageNumbersRef.current = damageNumbersRef.current.filter(d => (nowForDmg - d.start) < d.duration);
 
     const revealTime = phase === PHASES.MAP_INTRO ? mapRevealTimeRef.current : null;
-    if (revealTime !== null || !mapCacheRef.current) {
-      // Reveal animation or cache not ready: draw tile-by-tile
-      drawMap(
-        ctx,
-        mapRef.current,
-        tilesetRef.current,
-        cameraRef.current,
-        viewRef.current,
-        MAP_WIDTH,
-        MAP_HEIGHT,
-        revealTime,
-        { staggerMs: REVEAL_STAGGER_MS, dropDurationMs: REVEAL_DROP_DURATION_MS, startYOffset: REVEAL_START_Y_OFFSET }
-      );
-    } else {
-      // Fast path: single blit using continuous pixel offset for smooth scrolling
-      const cam = cameraRef.current;
-      const off = scrollOffsetRef.current;
-      const view = viewRef.current;
-      // src: pixel position in the full offscreen map
-      const srcX = cam.x * TILE_SIZE + off.x;
-      const srcY = cam.y * TILE_SIZE + off.y;
-      ctx.drawImage(
-        mapCacheRef.current,
-        srcX,
-        srcY,
-        view.tilesX * TILE_SIZE,
-        view.tilesY * TILE_SIZE,
-        0, 0,
-        view.tilesX * TILE_SIZE,
-        view.tilesY * TILE_SIZE
-      );
-    }
+    drawMap(
+      ctx,
+      mapRef.current,
+      tilesetRef.current,
+      cameraRef.current,
+      viewRef.current,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+      revealTime,
+      { staggerMs: REVEAL_STAGGER_MS, dropDurationMs: REVEAL_DROP_DURATION_MS, startYOffset: REVEAL_START_Y_OFFSET }
+    );
     
-    // Shift context by sub-tile scroll offset so units/overlays align with the map blit
-    const scrollOff = scrollOffsetRef.current;
-    ctx.save();
-    ctx.translate(-scrollOff.x, -scrollOff.y);
-
     // Only draw units after tile animation completes
     if (phase !== PHASES.MAP_INTRO) {
       drawUnits(ctx, friendlyUnits, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets);
@@ -409,75 +326,33 @@ const redraw = () => {
     }
 
     drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
+    drawGrid(ctx, viewRef.current.tilesX, viewRef.current.tilesY);
 
-    if (moveModeRef.current && movingUnitRef.current) {
-      // Filter out the unit's own tile from the blue movement overlay
-      const movUnit = movingUnitRef.current;
-      const filteredTiles = reachableTilesRef.current.filter(
-        t => !(t.x === movUnit.x && t.y === movUnit.y)
-      );
-
+    // Draw movement overlays last so they appear above everything else.
+    if (moveMode && movingUnit) {
       // Player movement tiles: blue
-      drawColoredRange(ctx, filteredTiles, cameraRef.current, "rgba(0,100,255,0.35)");
+      drawColoredRange(ctx, reachableTiles, cameraRef.current, "rgba(0,100,255,0.35)");
       // Attack edge tiles: red, drawn on top of movement
-      if (attackTilesRef.current && attackTilesRef.current.length > 0) {
-        drawColoredRange(ctx, attackTilesRef.current, cameraRef.current, "rgba(255,0,0,0.45)");
+      if (attackTiles && attackTiles.length > 0) {
+        drawColoredRange(ctx, attackTiles, cameraRef.current, "rgba(255,0,0,0.45)");
       }
 
+      drawSelection(ctx, tilesetRef.current, movingUnit, cameraRef.current);
+
       // Draw path with arrows
-      if (currentPathRef.current && currentPathRef.current.length > 1) {
-        drawPath(ctx, tilesetRef.current, currentPathRef.current, cameraRef.current, getArrowTileForPath);
+      if (currentPath && currentPath.length > 1) {
+        drawPath(ctx, tilesetRef.current, currentPath, cameraRef.current, getArrowTileForPath);
       }
     }
 
     // Draw enemy selected movement range last (red overlay)
-    if (enemySelectedUnitRef.current && enemyReachableTilesRef.current && enemyReachableTilesRef.current.length > 0) {
-      drawColoredRange(ctx, enemyReachableTilesRef.current, cameraRef.current, "rgba(255,0,0,0.45)");
+    if (enemySelectedUnit && enemyReachableTiles && enemyReachableTiles.length > 0) {
+      drawColoredRange(ctx, enemyReachableTiles, cameraRef.current, "rgba(255,0,0,0.45)");
     }
 
     // Draw floating damage numbers above everything
     drawDamageNumbers(ctx, damageNumbersRef.current, cameraRef.current);
-
-    // Grid drawn inside translate so it scrolls with the map
-    drawGrid(ctx, viewRef.current.tilesX + 1, viewRef.current.tilesY + 1);
-
-    ctx.restore();
   };
-
-  // Animation loop: when there are idle units or active hit/shake animations,
-  // run a requestAnimationFrame loop so idle wiggle (time-based) continues
-  // even when the user is not moving the mouse.
-  useEffect(() => {
-    const needsAnimation = () => {
-      // Idle units present
-      const hasIdle = (friendlyUnits || []).some(u => !u.isDead && !u.hasActed) || (enemyUnits || []).some(u => !u.isDead && !u.hasActed);
-      const hasHit = hitAnimationsRef.current && hitAnimationsRef.current.size > 0;
-      const hasShake = shakeRef.current && shakeRef.current.size > 0;
-      const revealActive = phase === PHASES.MAP_INTRO && mapRevealRafRef.current;
-      return hasIdle || hasHit || hasShake || revealActive;
-    };
-
-    const loop = () => {
-      redraw();
-      rafRef.current = requestAnimationFrame(loop);
-    };
-
-    if (needsAnimation()) {
-      if (!rafRef.current) rafRef.current = requestAnimationFrame(loop);
-    } else {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    }
-
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [friendlyUnits, enemyUnits, phase]);
 
   useEffect(() => {
     if (phase !== PHASES.MAP_INTRO) return;
@@ -493,7 +368,6 @@ const redraw = () => {
       if (loaded < 2) return;
       imagesLoadedRef.current = true;
       mapRef.current = generateValidatedMap(generateMap, MAP_WIDTH, MAP_HEIGHT);
-      buildMapCache(); // pre-render full map once for fast scroll blitting
 
       mapRevealStartRef.current = performance.now();
       mapRevealTimeRef.current = 0;
@@ -563,8 +437,6 @@ const redraw = () => {
           atk: def.atk,
           move: def.move,
           range: def.range,
-          // Preserve editor-only visibility flag so UI can decide whether to show Project info
-          editorShowInfo: def.editorShowInfo !== undefined ? !!def.editorShowInfo : undefined,
           meta: def.meta // include images/info for UI
         };
 
@@ -719,19 +591,10 @@ const redraw = () => {
           return units;
         }
         const updated = units.map(u => u.id === unit.id ? { ...u, x: nextPos.x, y: nextPos.y } : u);
-        // Do NOT call setMovingUnit from inside this updater (can trigger setState-in-render
-        // warnings if invoked during parent render). Instead, store the pending update in a ref
-        // and apply it immediately after the updater completes.
-        pendingMovingUpdateRef.current = { id: unit.id, x: nextPos.x, y: nextPos.y };
+        // Also update the movingUnit state so the selection/render stays in sync
+        setMovingUnit(prev => prev && prev.id === unit.id ? { ...prev, x: nextPos.x, y: nextPos.y } : prev);
         return updated;
       });
-
-      // If we recorded a pending movingUnit update, apply it now (outside the updater)
-      if (pendingMovingUpdateRef.current) {
-        const p = pendingMovingUpdateRef.current;
-        setMovingUnit(prev => prev && prev.id === p.id ? { ...prev, x: p.x, y: p.y } : prev);
-        pendingMovingUpdateRef.current = null;
-      }
 
       if (!canMove) {
         setFriendlyUnits(units => units.map(u => u.id === unit.id ? { ...u, hasActed: true } : u));
@@ -1013,71 +876,10 @@ useEffect(() => {
   return () => window.removeEventListener("resize", onResize);
 }, []);
 
-  // Edge-scroll: move camera when mouse is near screen edges
+  // Ensure Projects menu closes whenever an InfoPanel opens
   useEffect(() => {
-    const EDGE_SIZE = 80;    // px from edge that triggers scroll
-    const MAX_SPEED = 0.15;  // tiles per frame at full edge
-    let mouseX = -1;
-    let mouseY = -1;
-    let rafId = null;
-
-    const onMouseMove = (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    };
-
-    const tick = () => {
-      rafId = requestAnimationFrame(tick);
-      if (mouseX < 0) return;
-
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const view = viewRef.current;
-      let dx = 0;
-      let dy = 0;
-
-      if (mouseX < EDGE_SIZE)           dx = -MAX_SPEED * (1 - mouseX / EDGE_SIZE);
-      else if (mouseX > vw - EDGE_SIZE) dx =  MAX_SPEED * (1 - (vw - mouseX) / EDGE_SIZE);
-      if (mouseY < EDGE_SIZE)           dy = -MAX_SPEED * (1 - mouseY / EDGE_SIZE);
-      else if (mouseY > vh - EDGE_SIZE) dy =  MAX_SPEED * (1 - (vh - mouseY) / EDGE_SIZE);
-
-      if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return;
-
-      const cam = cameraRef.current;
-      const off = scrollOffsetRef.current;
-
-      // Accumulate in pixel space for smooth scrolling
-      let newOffX = off.x + dx * TILE_SIZE;
-      let newOffY = off.y + dy * TILE_SIZE;
-
-      // Advance camera tile when offset exceeds a full tile
-      let newCamX = cam.x;
-      let newCamY = cam.y;
-      while (newOffX >= TILE_SIZE  && newCamX < MAP_WIDTH  - view.tilesX) { newOffX -= TILE_SIZE; newCamX++; }
-      while (newOffX <= -TILE_SIZE && newCamX > 0)                         { newOffX += TILE_SIZE; newCamX--; }
-      while (newOffY >= TILE_SIZE  && newCamY < MAP_HEIGHT - view.tilesY)  { newOffY -= TILE_SIZE; newCamY++; }
-      while (newOffY <= -TILE_SIZE && newCamY > 0)                         { newOffY += TILE_SIZE; newCamY--; }
-
-      // Clamp offset at map edges
-      if (newCamX === 0 && newOffX < 0)                      newOffX = 0;
-      if (newCamX === MAP_WIDTH  - view.tilesX && newOffX > 0) newOffX = 0;
-      if (newCamY === 0 && newOffY < 0)                      newOffY = 0;
-      if (newCamY === MAP_HEIGHT - view.tilesY && newOffY > 0) newOffY = 0;
-
-      if (newCamX !== cam.x || newCamY !== cam.y || newOffX !== off.x || newOffY !== off.y) {
-        cameraRef.current = { x: newCamX, y: newCamY };
-        scrollOffsetRef.current = { x: newOffX, y: newOffY };
-        redraw();
-      }
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    rafId = requestAnimationFrame(tick);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      cancelAnimationFrame(rafId);
-    };
-  }, []);
+    if (infoPanelOpen) setProjectsMenuOpen(false);
+  }, [infoPanelOpen]);
 
   const handleMenuSelect = (action, unit) => {
     switch(action) {
@@ -1091,29 +893,23 @@ useEffect(() => {
         }
 
         // Enter move mode
-        setMoveModeSync(true);
-        setMovingUnitSync(unit);
+        setMoveMode(true);
+        setMovingUnit(unit);
         // Calculate reachable tiles using A*
         const occupied = [...friendlyUnits, ...enemyUnits.filter(e => !e.isDead)]
           .filter(u => u.id !== unit.id)
           .map(u => ({ x: u.x, y: u.y }));
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
-        setReachableTilesSync(tiles);
-        // Compute attack tiles: only project attack range from walkable (low-cost) tiles
-        // so water tiles don't generate a huge red overlay across the map.
-        const MAX_ATTACK_SOURCE_COST = 2;
+        setReachableTiles(tiles);
+        // Compute attack tiles: all tiles within `movingUnit.range` from any reachable tile
+        // (exclude tiles that are already reachable to avoid overlap)
         const reachableSet = new Set(tiles.map(t => `${t.x},${t.y}`));
         const attackSet = new Set();
         const withinBounds = (x, y) => x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT;
-        const range = (unit?.range ?? 1);
+        const range = (unit?.range ?? movingUnit?.range ?? 1);
 
-        // Unit's own tile + only walkable reachable tiles generate attack range
-        const attackSources = [{ x: unit.x, y: unit.y }, ...tiles.filter(t => {
-          const cost = getTileWalkCost(mapRef.current[t.y]?.[t.x]);
-          return cost <= MAX_ATTACK_SOURCE_COST;
-        })];
-
-        for (const t of attackSources) {
+        for (const t of tiles) {
+          // iterate over a diamond (Manhattan distance) of radius `range`
           for (let dx = -range; dx <= range; dx++) {
             const maxDy = range - Math.abs(dx);
             for (let dy = -maxDy; dy <= maxDy; dy++) {
@@ -1121,7 +917,7 @@ useEffect(() => {
               const ny = t.y + dy;
               if (!withinBounds(nx, ny)) continue;
               const key = `${nx},${ny}`;
-              if (reachableSet.has(key)) continue;
+              if (reachableSet.has(key)) continue; // skip tiles you can move to
               attackSet.add(key);
             }
           }
@@ -1131,13 +927,10 @@ useEffect(() => {
           const [x, y] = k.split(",").map(Number);
           return { x, y };
         });
-        setAttackTilesSync(edge);
+        setAttackTiles(edge);
         // Close menu
         setMenuUnit(null);
         setMenuPosition(null);
-        // Force immediate canvas repaint so movement range appears right away
-        // without waiting for the next mouse interaction.
-        requestAnimationFrame(() => redraw());
         break;
       case "attack":
         // TODO: Implement attack functionality
@@ -1160,25 +953,9 @@ useEffect(() => {
         setInfoPanelUnit(unit);
         setInfoPanelProject(null);
         setInfoPanelOpen(true);
-        setProjectsMenuOpen(false);
         break;
       case "link":
-        // Open the unit's configured link(s) if available.
-        try {
-          const links = unit?.meta?.links || unit?.meta?.info?.links;
-          if (Array.isArray(links) && links.length > 0) {
-            const first = links[0];
-            const url = typeof first === "string" ? first : (first.url || first.href || first.link);
-            if (url) {
-              window.open(url, "_blank");
-            }
-          }
-        } catch (err) {
-          console.warn("Failed to open link for unit", unit && unit.id, err);
-        }
-        setMenuUnit(null);
-        setMenuPosition(null);
-        break;
+        // TODO: Implement enemy link action
         break;
       default:
         break;
@@ -1196,17 +973,17 @@ useEffect(() => {
           .filter(u => u.id !== movingUnit.id)
           .map(u => ({ x: u.x, y: u.y }));
         const path = findPath(movingUnit.x, movingUnit.y, tile.x, tile.y, mapRef.current, movingUnit.move, occupied);
-        setCurrentPathSync(path);
+        setCurrentPath(path);
       } else {
-        setCurrentPathSync(null);
+        setCurrentPath(null);
       }
     }
   };
 
   const handleTileClick = (tile) => {
     // Clear enemy selection when clicking any tile (including when cancelling)
-    setEnemySelectedUnitSync(null);
-    setEnemyReachableTilesSync([]);
+    setEnemySelectedUnit(null);
+    setEnemyReachableTiles([]);
 
     if (moveMode && movingUnit) {
       // Check if clicked tile is reachable
@@ -1229,11 +1006,6 @@ useEffect(() => {
         if (!path || path.length <= 1) {
           return;
         }
-
-        // Clear overlays immediately so they disappear as soon as the unit starts walking
-        setReachableTilesSync([]);
-        setAttackTilesSync([]);
-        setCurrentPathSync(null);
 
         // Animate movement to destination (same as AI)
         animateFriendlyMovement(movingUnit, path, () => {
@@ -1312,11 +1084,6 @@ useEffect(() => {
             return;
           }
 
-          // Clear overlays immediately so they disappear as soon as the unit starts walking
-          setReachableTilesSync([]);
-          setAttackTilesSync([]);
-          setCurrentPathSync(null);
-
           animateFriendlyMovement(movingUnit, path, () => {
             // After movement completes, ensure final position, then apply damage
             const destination = path[path.length - 1];
@@ -1338,12 +1105,12 @@ useEffect(() => {
           .filter(u => u.id !== unit.id)
           .map(u => ({ x: u.x, y: u.y }));
         const tiles = getReachableTiles(unit.x, unit.y, unit.move, mapRef.current, occupied);
-        setEnemyReachableTilesSync(tiles);
-        setEnemySelectedUnitSync(unit);
+        setEnemyReachableTiles(tiles);
+        setEnemySelectedUnit(unit);
       } else {
         // Clicking a friendly unit should clear any enemy selection
-        setEnemySelectedUnitSync(null);
-        setEnemyReachableTilesSync([]);
+        setEnemySelectedUnit(null);
+        setEnemyReachableTiles([]);
       }
 
       setMenuUnit(unit);
@@ -1355,7 +1122,6 @@ useEffect(() => {
 
   return (
     <>
-      {/* Projects Menu Toggle Button */}
       <button
         className="projects-menu-toggle"
         style={{ left: projectsMenuOpen ? 300 : 0 }}
@@ -1364,19 +1130,32 @@ useEffect(() => {
       >
         <span>{projectsMenuOpen ? "←" : "→"}</span>
       </button>
-      {/* Projects Popout Menu */}
       <ProjectsMenu
         projects={portfolioProjects}
         isOpen={projectsMenuOpen}
         onClose={() => setProjectsMenuOpen(false)}
         onProjectClick={(proj) => {
-          // Find the actual unit definition for this project
           let unit = null;
           try {
             unit = createUnitFromType(proj.unitType, { id: proj.unitType + "_preview" });
-          } catch {}
+          } catch (e) {
+            console.warn("Failed to create preview unit for project", proj, e);
+          }
           setInfoPanelUnit(unit);
-          setInfoPanelProject(null); // clear project prop to prefer unit
+          setInfoPanelProject(null);
+          setInfoPanelOpen(true);
+          setProjectsMenuOpen(false);
+        }}
+        onProfileClick={() => {
+          // Open the DanielMardunovich enemy info panel when profile is clicked
+          let unit = null;
+          try {
+            unit = createUnitFromType("DanielMardunovich", { id: "DanielMardunovich_preview" });
+          } catch (e) {
+            console.warn("Failed to create DanielMardunovich preview unit", e);
+          }
+          setInfoPanelUnit(unit);
+          setInfoPanelProject(null);
           setInfoPanelOpen(true);
           setProjectsMenuOpen(false);
         }}

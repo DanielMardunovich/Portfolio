@@ -11,10 +11,7 @@ export default class UnitBase {
     move = 4,
     range = 1,
     images = [], // left column images for info panel (stacked)
-    info = { headline: "", text: "" }, // right column info for info panel
-    // Editor-only flag: whether this unit should show the project/info button
-    // Defaults: friendlies = true, enemies = false
-    editorShowInfo
+    info = { headline: "", text: "" } // right column info for info panel
   } = {}) {
     this.id = id;
     this.faction = faction;
@@ -35,6 +32,5 @@ export default class UnitBase {
     this.range = range;
     this.images = images;
     this.info = info;
-    this.editorShowInfo = (editorShowInfo !== undefined) ? !!editorShowInfo : (faction === FACTION.FRIENDLY);
   }
 }

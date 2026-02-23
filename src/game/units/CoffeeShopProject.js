@@ -29,7 +29,7 @@ export default class CoffeeShopProject extends UnitBase {
            { label: "Languages", value: "C++" },
            { label: "Engine", value: "Unreal" },
          ],
-          itchUrl: opts.itchUrl || "https://futuregames.itch.io/cosmosis",
+          itchUrl: opts.itchUrl,
         description: `This is a reusable GOAP (Goal-Oriented Action Planning) framework built in Unreal Engine, designed to power believable AI behaviour across multiple game genres. The system is currently deployed in a coffeeshop simulation where AI agents autonomously enter a store, evaluate their needs, and plan sequences of actions — such as queuing, ordering, and waiting — based on their current world state.\n
 The framework is built around a data-driven philosophy. Actions and goals are defined entirely as Data Assets, keeping the planner designer-friendly without sacrificing flexibility — procedural preconditions and dynamic costs can be extended in Blueprint without touching C++. At the planning level, an A* search with a Hamming distance heuristic finds optimal action sequences across a multi-typed world state, with async planning support to keep the game thread clear under heavy AI loads.\n
 Shared world knowledge is managed through a World Subsystem, giving all agents access to global actor references through a layered fallback — checking assigned state, default knowledge, and tag-based world search in sequence. An AI Manager handles agent registration, activation control, and an object pool system configured entirely through Project Settings, keeping spawn costs low and designer-exposed parameters out of code.\n

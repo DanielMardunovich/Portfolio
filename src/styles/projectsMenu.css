@@ -159,3 +159,111 @@
 .projects-menu-toggle:hover {
   filter: brightness(1.12);
 }
+
+/* ── Profile area ── */
+.projects-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.06), transparent);
+  border-bottom: 1px dashed rgba(255,255,255,0.03);
+  flex-shrink: 0;
+}
+
+.projects-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.06), transparent);
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.projects-profile-btn:hover {
+  filter: brightness(1.06);
+}
+
+.projects-profile-image {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.projects-profile-initials {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 20%, black), rgba(0,0,0,0.2));
+  color: var(--bg);
+  font-family: 'Press Start 2P', monospace;
+  font-weight: 900;
+  border-radius: 6px;
+}
+
+.projects-profile-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.projects-profile-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projects-profile-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Section header (e.g., Contact) ── */
+.projects-section-header {
+  padding: 10px 12px;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: 'Press Start 2P', monospace;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+}
+
+.projects-contact-list {
+  padding: 10px 8px 18px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.projects-contact-list .contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.projects-contact-list .contact-item:hover {
+  background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 80%, black) 100%);
+  color: var(--bg);
+}
