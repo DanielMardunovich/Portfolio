@@ -19,14 +19,19 @@ export function attachBattleInput({
   cameraRef,
   cursorRef,
   selectedUnitRef,
-  friendlyUnits,
-  enemyUnits,
+  friendlyUnitsRef,
+  enemyUnitsRef,
   redraw,
   onUnitClick,
   onTileHover,
   onTileClick,
   moveMode
 }) {
+  // Always reads the latest unit arrays via refs — never stale
+  const getUnits = () => ({
+    friendly: friendlyUnitsRef.current,
+    enemy: enemyUnitsRef.current
+  });
   const onMove = e => {
     const tile = screenToTile(e, canvas, cameraRef.current);
     cursorRef.current = tile;
@@ -40,8 +45,9 @@ export function attachBattleInput({
 
   const onClick = e => {
     const tile = screenToTile(e, canvas, cameraRef.current);
-    const friendlyUnit = friendlyUnits.find(u => u.x === tile.x && u.y === tile.y);
-    const enemyUnit = enemyUnits.find(u => u.x === tile.x && u.y === tile.y);
+    const { friendly, enemy } = getUnits();
+    const friendlyUnit = friendly.find(u => u.x === tile.x && u.y === tile.y);
+    const enemyUnit = enemy.find(u => u.x === tile.x && u.y === tile.y);
     const unit = friendlyUnit || enemyUnit;
     
     // If no unit was clicked, always notify tile click (used to clear selections
@@ -68,8 +74,9 @@ export function attachBattleInput({
     if (e.touches.length > 0) {
       const touch = e.touches[0];
       const tile = screenToTile(touch, canvas, cameraRef.current);
-      const friendlyUnit = friendlyUnits.find(u => u.x === tile.x && u.y === tile.y);
-      const enemyUnit = enemyUnits.find(u => u.x === tile.x && u.y === tile.y);
+      const { friendly, enemy } = getUnits();
+      const friendlyUnit = friendly.find(u => u.x === tile.x && u.y === tile.y);
+      const enemyUnit = enemy.find(u => u.x === tile.x && u.y === tile.y);
       const unit = friendlyUnit || enemyUnit;
       
       cursorRef.current = tile;
