@@ -5,6 +5,7 @@ import "../styles/unitMenu.css";
 export default function UnitMenu({ unit, position, onSelect, onClose }) {
   const menuRef = useRef(null);
   const [computedPos, setComputedPos] = useState({ left: position?.x ?? 0, top: position?.y ?? 0 });
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -30,6 +31,9 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
 
   // Compute menu position after render so it doesn't overflow the viewport.
   useLayoutEffect(() => {
+    const onResizeLayout = () => setIsMobileLayout(window.innerWidth <= 700);
+    onResizeLayout();
+    window.addEventListener('resize', onResizeLayout);
     if (!menuRef.current || !position) return;
 
     // Reusable helper to compute position next to a unit rect.
@@ -81,8 +85,13 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
 
       if (!unitRect) unitRect = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
 
-      const pos = computeMenuPosition(unitRect, menuRect, { offset: 16, offsetY: 8, margin: 8 });
-      setComputedPos({ left: pos.left, top: pos.top });
+      if (window.innerWidth <= 700) {
+        // Mobile: show bottom-centered sheet
+        setComputedPos({ left: '50%', bottom: 12 });
+      } else {
+        const pos = computeMenuPosition(unitRect, menuRect, { offset: 16, offsetY: 8, margin: 8 });
+        setComputedPos({ left: pos.left, top: pos.top });
+      }
     };
 
     compute();
@@ -91,6 +100,7 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
     return () => {
       window.removeEventListener('resize', compute);
       window.removeEventListener('scroll', compute);
+      window.removeEventListener('resize', onResizeLayout);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position, unit?.id]);
@@ -110,8 +120,10 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
       ref={menuRef}
       className="unit-menu"
       style={{
-        left: `${computedPos.left}px`,
-        top: `${computedPos.top}px`
+        left: computedPos.left != null ? `${computedPos.left}px` : undefined,
+        top: computedPos.top != null ? `${computedPos.top}px` : undefined,
+        bottom: computedPos.bottom != null ? `${computedPos.bottom}px` : undefined,
+        transform: computedPos.left === '50%' || isMobileLayout ? 'translateX(-50%)' : undefined
       }}
     >
       {/* Top full-width Project info bar (only when editorShowInfo is enabled) */}
