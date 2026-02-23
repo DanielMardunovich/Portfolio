@@ -12,6 +12,7 @@ export default class Gmail extends UnitBase {
       atk: opts.atk ?? 2,
       move: opts.move ?? 5,
       range: opts.range ?? 1,
+      editorShowInfo: opts.editorShowInfo !== undefined ? !!opts.editorShowInfo : false,
       info: opts.info || {
         name: "Mardunovich@gmail.com",
         links: [

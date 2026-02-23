@@ -3,6 +3,17 @@ import { TILE_SIZE, TILES, MOUSE_TILES, WALK_ARROW_TILES } from "./wfc/tiles";
 // Cache for loaded standalone unit images (keyed by src)
 const unitImageCache = new Map();
 
+// Small deterministic string -> numeric hash for per-unit phase variation
+function hashStringToSeed(str) {
+  if (!str) return 0;
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h;
+}
+
 export function drawGrid(ctx, w, h) {
   ctx.save();
   ctx.strokeStyle = "rgba(0,0,0,0.15)";
@@ -64,26 +75,70 @@ export function drawMap(ctx, map, tileset, cam, view, mapW, mapH, revealTimeMs =
   }
 }
 
-export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOffsets = null) {
+export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOffsets = null, idlePulses = null) {
+  const nowMs = performance.now();
+  const nowSec = nowMs / 1000;
+
+  // Prefer crisp nearest-neighbor sampling for pixel-art sprites
+  if (ctx) ctx.imageSmoothingEnabled = false;
+
   units.forEach(u => {
     const x = u.x - cam.x;
     const y = u.y - cam.y;
     if (x < 0 || y < 0 || x >= view.tilesX || y >= view.tilesY) return;
 
-    // Apply shake offset when provided
-    const offset = (shakeOffsets && shakeOffsets.has(u.id)) ? shakeOffsets.get(u.id) : { dx: 0, dy: 0 };
-    const drawX = x * TILE_SIZE + (offset.dx || 0);
-    const drawY = y * TILE_SIZE + (offset.dy || 0);
+    // Determine explicit shake offset (higher priority)
+    let explicit = (shakeOffsets && shakeOffsets.has(u.id)) ? shakeOffsets.get(u.id) : null;
+
+    // Compute draw position (apply explicit shake or deterministic idle wiggle below)
+    // - tileset coords: { sx, sy } drawn from the `sprites` tilesheet
+    // - standalone image: { src } drawn from a cached Image object
+    // If an explicit shake exists, it overrides deterministic idle wiggle
+    let drawX = x * TILE_SIZE;
+    let drawY = y * TILE_SIZE;
+    if (explicit) {
+      drawX += (explicit.dx || 0);
+      drawY += (explicit.dy || 0);
+    } else {
+      // deterministic idle wiggle
+      const seed = hashStringToSeed(String(u.id || (u.x + ',' + u.y)));
+      const phase = (seed % 1000) / 1000 * Math.PI * 2;
+      const ampX = 2.4;
+      const ampY = 1.8;
+      const freqX = 1.4;
+      const freqY = 1.0;
+      let idleDx = Math.sin(nowSec * freqX + phase) * ampX;
+      let idleDy = Math.cos(nowSec * freqY + phase * 1.3) * ampY;
+      // Disable idle motion for moving, attacking, or dead units
+      if (u.isMoving || u.isAttacking || u.isDead) { idleDx = 0; idleDy = 0; }
+
+      // Apply an idle pulse multiplier when present (smooth envelope)
+      if (idlePulses && idlePulses.has(u.id)) {
+        const pulse = idlePulses.get(u.id);
+        const remaining = Math.max(0, pulse.end - nowMs);
+        const env = Math.min(1, remaining / pulse.duration);
+        const mult = 1 + (pulse.strength || 0) * env;
+        idleDx *= mult;
+        idleDy *= mult;
+      }
+
+      drawX += idleDx;
+      drawY += idleDy;
+    }
+
+    // Round to integer pixel positions to avoid subpixel sampling artifacts
+    const rX = Math.round(drawX);
+    const rY = Math.round(drawY);
 
     // Draw faction highlight behind unit (green for friendly, red for enemy)
     if (u.faction) {
       const isFriendly = u.faction === "friendly";
       ctx.save();
       ctx.fillStyle = isFriendly ? "rgba(50,220,100,0.12)" : "rgba(220,60,60,0.12)";
-      ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+      ctx.fillRect(rX, rY, TILE_SIZE, TILE_SIZE);
       ctx.strokeStyle = isFriendly ? "rgba(50,220,100,0.8)" : "rgba(220,60,60,0.8)";
       ctx.lineWidth = 2;
-      ctx.strokeRect(drawX + 1, drawY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+      ctx.strokeRect(rX + 1, rY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
       ctx.restore();
     }
 
@@ -98,8 +153,8 @@ export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOf
         unitImageCache.set(u.sprite.src, img);
       }
       if (img.complete && img.naturalWidth > 0) {
-        // Draw the image centered in the tile and scaled to fit
-        ctx.drawImage(img, drawX, drawY, TILE_SIZE, TILE_SIZE);
+        // Draw the image centered in the tile and scaled to fit (rounded coords)
+        ctx.drawImage(img, rX, rY, TILE_SIZE, TILE_SIZE);
       }
     } else {
       ctx.drawImage(
@@ -108,8 +163,8 @@ export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOf
         u.sprite.sy * TILE_SIZE,
         TILE_SIZE,
         TILE_SIZE,
-        drawX,
-        drawY,
+        rX,
+        rY,
         TILE_SIZE,
         TILE_SIZE
       );
@@ -120,7 +175,7 @@ export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOf
       const opacity = hitMap.get(u.id) ?? 0.5;
       ctx.save();
       ctx.fillStyle = `rgba(255,0,0,${opacity})`;
-      ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+      ctx.fillRect(rX, rY, TILE_SIZE, TILE_SIZE);
       ctx.restore();
     }
 
@@ -128,7 +183,7 @@ export function drawUnits(ctx, units, sprites, cam, view, hitMap = null, shakeOf
     if (u.isDead) {
       ctx.save();
       ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+      ctx.fillRect(rX, rY, TILE_SIZE, TILE_SIZE);
       ctx.restore();
     }
   });

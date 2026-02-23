@@ -78,6 +78,7 @@ export default function BattleMap() {
   const hitAnimationsRef = useRef(new Map());
   const hitAnimatingRef = useRef(false);
   const shakeRef = useRef(new Map());
+  const idlePulseRef = useRef(new Map());
   const damageNumbersRef = useRef([]);
   const imagesLoadedRef = useRef(false);
   const mapRevealStartRef = useRef(0);
@@ -313,6 +314,12 @@ export default function BattleMap() {
     const nowForShake = performance.now();
     const shakeOffsets = new Map();
     for (const [id, obj] of shakeRef.current.entries()) {
+      // skip shakes for dead units
+      const unit = [...friendlyUnitsRef.current, ...enemyUnitsRef.current].find(u => u.id === id);
+      if (unit && unit.isDead) {
+        shakeRef.current.delete(id);
+        continue;
+      }
       const remaining = obj.end - nowForShake;
       if (remaining <= 0) {
         shakeRef.current.delete(id);
@@ -345,8 +352,8 @@ export default function BattleMap() {
     
     // Only draw units after tile animation completes
     if (phaseRef.current !== PHASES.MAP_INTRO) {
-      drawUnits(ctx, friendlyUnitsRef.current, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets);
-      drawUnits(ctx, enemyUnitsRef.current, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets);
+      drawUnits(ctx, friendlyUnitsRef.current, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets, idlePulseRef.current);
+      drawUnits(ctx, enemyUnitsRef.current, unitSpriteRef.current, cameraRef.current, viewRef.current, hitMap, shakeOffsets, idlePulseRef.current);
     }
 
     drawCursor(ctx, tilesetRef.current, cursorRef.current, cameraRef.current);
@@ -638,8 +645,7 @@ export default function BattleMap() {
   // numbers always animate. Uses phaseRef so the closure never goes stale.
   const rafRef = useRef(null);
   useEffect(() => {
-    if (phase !== PHASES.MAP_IDLE) return;
-
+    // Run continuous RAF redraw on mount so wiggle/shake animations animate in every phase
     const loop = () => {
       redraw();
       rafRef.current = requestAnimationFrame(loop);
@@ -653,7 +659,7 @@ export default function BattleMap() {
         rafRef.current = null;
       }
     };
-  }, [phase]);
+  }, []);
   useEffect(() => {
     if (phase !== PHASES.MAP_IDLE) return;
     if (turn !== TURN.ENEMY) {
@@ -679,13 +685,23 @@ export default function BattleMap() {
       isAnimatingEnemyRef.current = true;
       
       const enemiesToMove = enemyUnits.filter(e => !e.hasActed && !e.isDead);
-      
+
+      // Reserve current enemy positions so other enemies won't plan to move onto them.
+      const reservedPositions = new Set(enemyUnits.map(e => `${e.x},${e.y}`));
+      // Track friendlies that die during this AI processing so subsequent enemies ignore them
+      const deadTargets = new Set();
+
       for (const enemy of enemiesToMove) {
+        const startKey = `${enemy.x},${enemy.y}`;
+        // Temporarily free our own starting tile so pathfinding can move out of it,
+        // but keep other enemies' tiles reserved.
+        reservedPositions.delete(startKey);
         
 
-        // Get all occupied positions (excluding current enemy)
+        // Get all occupied positions (excluding current enemy).
+        // Ignore dead friendly units so enemies can move onto those tiles.
         const occupied = [...friendlyUnits, ...enemyUnits]
-          .filter(u => u.id !== enemy.id)
+          .filter(u => u.id !== enemy.id && !u.isDead)
           .map(u => ({ x: u.x, y: u.y }));
 
         const reachable = getReachableTiles(enemy.x, enemy.y, enemy.move, mapRef.current, occupied);
@@ -695,6 +711,8 @@ export default function BattleMap() {
           setEnemyUnits(units => 
             units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u)
           );
+          // put our start reservation back since we didn't move
+          reservedPositions.add(startKey);
           continue;
         }
 
@@ -704,7 +722,7 @@ export default function BattleMap() {
         let bestCost = Infinity;
         let attackTargetId = null;
 
-        const aliveFriendliesForRange = friendlyUnits.filter(f => !f.isDead);
+        const aliveFriendliesForRange = friendlyUnitsRef.current.filter(f => !f.isDead && !deadTargets.has(f.id));
 
         // Look for reachable tiles that place the enemy within attack range of any alive friendly
         const attackOptions = [];
@@ -712,6 +730,9 @@ export default function BattleMap() {
           for (const f of aliveFriendliesForRange) {
             const d = Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y);
             if (d <= enemy.range) {
+              // ignore tiles already reserved by other enemies
+              const tkey = `${tile.x},${tile.y}`;
+              if (reservedPositions.has(tkey)) continue;
               attackOptions.push({ tile, target: f, cost: tile.cost });
             }
           }
@@ -720,8 +741,16 @@ export default function BattleMap() {
         if (attackOptions.length > 0) {
           // Pick cheapest option, tiebreaker by proximity to enemy
           attackOptions.sort((a, b) => a.cost - b.cost || (Math.abs(a.target.x - enemy.x) + Math.abs(a.target.y - enemy.y)) - (Math.abs(b.target.x - enemy.x) + Math.abs(b.target.y - enemy.y)));
-          bestTile = attackOptions[0].tile;
-          attackTargetId = attackOptions[0].target.id;
+          // pick first non-reserved attack option (defensive: double-check)
+          for (const opt of attackOptions) {
+            const k = `${opt.tile.x},${opt.tile.y}`;
+            if (reservedPositions.has(k)) continue;
+            bestTile = opt.tile;
+            attackTargetId = opt.target.id;
+            // reserve now so other enemies won't pick it
+            reservedPositions.add(k);
+            break;
+          }
         } else {
           // No direct attack move available; pick tile that minimizes distance to nearest alive friendly
           if (aliveFriendliesForRange.length === 0) {
@@ -736,6 +765,8 @@ export default function BattleMap() {
             const minDistanceToFriendly = Math.min(
               ...aliveFriendliesForRange.map(f => Math.abs(f.x - tile.x) + Math.abs(f.y - tile.y))
             );
+            const tkey = `${tile.x},${tile.y}`;
+            if (reservedPositions.has(tkey)) continue;
 
             if (
               minDistanceToFriendly < bestDistance ||
@@ -809,6 +840,7 @@ export default function BattleMap() {
               const { x, y } = neighbor;
               if (x < 0 || x >= width || y < 0 || y >= height) continue;
               // Block occupied tiles except for the starting tile
+              // Block occupied tiles except for the starting tile
               if (!(x === enemy.x && y === enemy.y) && occupiedSet.has(key(x, y))) continue;
               const neighborKey = key(x, y);
               if (closedSet.has(neighborKey)) continue;
@@ -839,23 +871,37 @@ export default function BattleMap() {
           }
           return null;
         })();
+        const destination = (path && path.length) ? path[path.length - 1] : bestTile;
+        // Reserve destination immediately so subsequent enemies in this loop won't pick it
+        if (destination) reservedPositions.add(`${destination.x},${destination.y}`);
 
         // Animate movement along path
         await new Promise(resolve => {
           animateEnemyMovement(enemy, path, () => {
             // Ensure enemy is placed at destination after animation
-            const destination = (path && path.length) ? path[path.length - 1] : bestTile;
             if (destination) {
               setEnemyUnits(units => units.map(u => u.id === enemy.id ? { ...u, x: destination.x, y: destination.y } : u));
             }
 
             // If we moved to attack, apply damage to the target (if still present and alive)
             if (attackTargetId) {
+              // read fresh unit state from ref
+              const targetUnit = friendlyUnitsRef.current.find(u => u.id === attackTargetId);
+              const prevHp = targetUnit ? (targetUnit.hp ?? 0) : 0;
+              const newHp = prevHp - enemy.atk;
+
               setFriendlyUnits(units => units.map(u => {
                 if (u.id !== attackTargetId) return u;
-                const newHp = (u.hp ?? 0) - enemy.atk;
                 return { ...u, hp: newHp, isDead: newHp <= 0, hasActed: newHp <= 0 ? true : u.hasActed };
               }));
+
+              // If this attack killed the target, mark it so other enemies ignore it
+              if (newHp <= 0) {
+                deadTargets.add(attackTargetId);
+                // also remove from reservedPositions so dead tiles can be reused if needed
+                if (targetUnit) reservedPositions.delete(`${targetUnit.x},${targetUnit.y}`);
+              }
+
               triggerDamage(attackTargetId, enemy.atk);
             }
 
@@ -863,6 +909,8 @@ export default function BattleMap() {
             setEnemyUnits(units => 
               units.map(u => u.id === enemy.id ? { ...u, hasActed: true } : u)
             );
+            // Reserve our new destination so subsequent enemies won't plan on it
+            if (destination) reservedPositions.add(`${destination.x},${destination.y}`);
             resolve();
           });
         });
@@ -893,6 +941,11 @@ export default function BattleMap() {
         friendlyAnimationTimeoutRef.current = null;
       }
     };
+  }, []);
+
+  // Clear any idle pulses and avoid periodic pulsing so idle movement is continuous
+  useEffect(() => {
+    idlePulseRef.current.clear();
   }, []);
 
   // Handle Escape key to cancel move mode

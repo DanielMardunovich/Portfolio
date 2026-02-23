@@ -103,6 +103,7 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
   };
 
   const isEnemy = unit.faction === FACTION.ENEMY;
+  const showProjectInfo = (unit.editorShowInfo !== false) && (!isEnemy || unit.type === "DanielMardunovich" || (unit.id && String(unit.id).toLowerCase().includes("danielmardunovich")));
 
   return (
     <div
@@ -114,7 +115,7 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
       }}
     >
       {/* Top full-width Project info bar (only when editorShowInfo is enabled) */}
-      {unit.editorShowInfo !== false && (
+      {showProjectInfo && (
         <button
           className="unit-menu-option unit-menu-project-top project-info"
           onClick={() => handleAction("info")}
