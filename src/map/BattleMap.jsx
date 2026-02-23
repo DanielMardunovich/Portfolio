@@ -1178,7 +1178,19 @@ useEffect(() => {
         setBubbleVisible(false);
         setBubbleUnitId(null);
       }
-      const position = calculateMenuPosition(screenX, screenY, unit.faction);
+      // Prefer the calculated screen position, but fall back to tile->client
+      // mapping (more reliable across scaled canvases / mobile) so the menu
+      // appears where the unit is.
+      let position = calculateMenuPosition(screenX, screenY, unit.faction);
+      try {
+        const clientFromTile = tileToClient(unit.x, unit.y);
+        if (!position || window.innerWidth <= 700) {
+          // Center menu near the unit's client coords on mobile or if calc failed
+          position = { x: clientFromTile.x, y: clientFromTile.y };
+        }
+      } catch (e) {
+        // ignore
+      }
       // If in move mode and a player is moving, handle attack behavior
       if (moveModeRef.current && movingUnitRef.current && unit.faction === FACTION.ENEMY) {
         const mover = movingUnitRef.current;
@@ -1255,8 +1267,10 @@ useEffect(() => {
         setEnemyReachableSync([]);
       }
 
+      // Set the UnitMenu first so it mounts above other UI, then close Projects menu.
       setMenuUnit(unit);
       setMenuPosition(position);
+      setProjectsMenuOpen(false);
       selectedUnitRef.current = unit;
       redraw();
     }

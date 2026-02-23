@@ -8,10 +8,10 @@ export default class BulletDanceProject extends UnitBase {
       ...opts,
       faction: opts.faction || "friendly",
       sprite: opts.sprite || "Units/BulletDance.png", // default to soldier sprite if not provided
-      hp: opts.hp ?? 20,
-      atk: opts.atk ?? 20,
-      move: opts.move ?? 15,
-      range: opts.range ?? 3,
+      hp: opts.hp ?? 10,
+      atk: opts.atk ?? 5,
+      move: opts.move ?? 3,
+      range: opts.range ?? 1,
       images: opts.images || [
         "GameLogos/BD.png",
         "BulletDanceImages/Running.png",

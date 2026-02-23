@@ -8,9 +8,9 @@ export default class CosmosisProject extends UnitBase {
       ...opts,
       faction: opts.faction || "friendly",
       sprite: opts.sprite || "Units/Cosmosis2.png",
-      hp: opts.hp ?? 20,
-      atk: opts.atk ?? 20,
-      move: opts.move ?? 15,
+      hp: opts.hp ?? 5,
+      atk: opts.atk ?? 6,
+      move: opts.move ?? 7,
       range: opts.range ?? 3,
       images: opts.images || [
         "GameLogos/Cosmosis.png",

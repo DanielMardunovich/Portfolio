@@ -7,13 +7,17 @@ export default class DanielMardunovich extends UnitBase {
     super({
       ...opts,
       faction: opts.faction || FACTION.ENEMY,
-      sprite: opts.sprite || "Me/PixelMe.png",
-      hp: opts.hp ?? 20,
-      atk: opts.atk ?? 20,
-      move: opts.move ?? 15,
-      range: opts.range ?? 3,
+      sprite: opts.sprite || "Me/PixelMe16.png",
+      hp: opts.hp ?? 12,
+      atk: opts.atk ?? 5,
+      move: opts.move ?? 6,
+      range: opts.range ?? 1,
       images: opts.images || [
         "Me/BarThingy.png",
+        "Me/Golf.png",
+        "Me/Dog.jpg",
+        "Me/Skii.png",
+        "Me/Boat.png",
       ],
       // Allow opening the editor/info panel even though this unit is an enemy
       editorShowInfo: opts.editorShowInfo !== undefined ? !!opts.editorShowInfo : true,
@@ -29,21 +33,24 @@ export default class DanielMardunovich extends UnitBase {
            { label: "Engine", value: "Unreal/Unity" },
          ],
           itchUrl: opts.itchUrl || "Me/ENGCVDanielMardunovich.pdf",
-        description: ``,
+        description: `
+Hi! I’m a game developer who loves bringing ideas to life through code. I work in both Unreal Engine and Unity, mainly using C++ and C#, with some experience in Java as well. I enjoy building gameplay systems that feel responsive, satisfying, and fun to interact with.
+
+I have a Bachelor’s degree in Game Design from Uppsala University, where I combined design thinking with technical problem-solving. When I’m not developing games, I’m usually playing them, hitting the court for paddleball or tennis, or skiing during the winter.
+
+I’m always excited to learn, improve, and collaborate on creative projects.
+`,
   gif: "Me/wide_daniel.gif",
   process: [
-    { src: "Me/CoolPixel.png", caption: `Me but pixelated` },
+    { src: "Me/Suit.jpg", caption: `Game Developer | Unreal & Unity | C++ / C#` },
     { src: "Me/Sissi1.jpg", caption: `My lovely dog Sinestra of Fortis (Or Sissi for short)` },
-    { src: "Me/PriceWinner.jpg", caption: `Me on stage after winning students choice award for the game project BulletDance` }
+    { src: "Me/PriceWinner.jpg", caption: `On stage after winning students choice award for the game project BulletDance` }
   ],
   features: [
     {
-      title: "AI Manager System",
-      text: "Centralized system controlling enemy spawning, activation states, and combat flow. Dynamically selects spawn points (closest, furthest, random, or all), manages active/inactive agent pools, triggers horde escalation, and handles room-clear logic with reward drops — ensuring scalable encounters and optimized AI lifecycle management.",
-      codeSamples: [
-        { label: ".h", filename: "AIManager.h", url: "ThrallCode/AIManager.h", lang: "cpp" },
-        { label: ".cpp", filename: "AIManager.cpp", url: "ThrallCode/AIManager.cpp", lang: "cpp" }
-      ]
+      title: "Contact Info",
+      text: "You can reach me via email at mardunovich@gmail.com or connect with me on LinkedIn.",
+      codeSamples: []
     },
   ]
 }

@@ -309,7 +309,7 @@ export default function InfoPanel({ project, unit, isOpen, onClose }) {
                         <h3>{f.title}</h3>
                         <p>{f.text}</p>
                         {/* Feature-level code button: accepts f.codeSamples (array) or f.code (string) */}
-                        {(samples && samples.length) && (
+                        {(samples && samples.length > 0) && (
                           <div style={{ marginTop: 10 }}>
                             <button
                               className={`show-code-toggle${isActive ? ' active' : ''}`}

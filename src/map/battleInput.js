@@ -70,36 +70,44 @@ export function attachBattleInput({
 
   // Touch support for mobile
   const onTouchStart = e => {
-    e.preventDefault();
+    // On touch start we only update cursor/hover state so fast drags still
+    // behave responsively. Activation occurs on touchend to avoid interference
+    // with gesture handling and to ensure a single tap opens the menu.
     if (e.touches.length > 0) {
       const touch = e.touches[0];
       const tile = screenToTile(touch, canvas, cameraRef.current);
-      const { friendly, enemy } = getUnits();
-      const friendlyUnit = friendly.find(u => u.x === tile.x && u.y === tile.y);
-      const enemyUnit = enemy.find(u => u.x === tile.x && u.y === tile.y);
-      const unit = friendlyUnit || enemyUnit;
-      
       cursorRef.current = tile;
-      
-      // If no unit was tapped, always notify tile click (used to clear selections
-      // or to move when in moveMode).
-      if (!unit) {
-        if (onTileClick) onTileClick(tile);
-        cursorRef.current = tile;
-        selectedUnitRef.current = null;
-        redraw();
-        return;
-      }
-
-      // Otherwise, handle unit taps
-      if (unit && onUnitClick) {
-        onUnitClick(unit, touch.clientX, touch.clientY);
-      }
-
-      cursorRef.current = tile;
-      selectedUnitRef.current = unit || null;
+      if (onTileHover) onTileHover(tile);
       redraw();
     }
+  };
+
+  const onTouchEnd = e => {
+    // Activation on touch end so a single tap opens menus reliably.
+    e.preventDefault();
+    const touch = (e.changedTouches && e.changedTouches[0]) || null;
+    if (!touch) return;
+    const tile = screenToTile(touch, canvas, cameraRef.current);
+    const { friendly, enemy } = getUnits();
+    const friendlyUnit = friendly.find(u => u.x === tile.x && u.y === tile.y);
+    const enemyUnit = enemy.find(u => u.x === tile.x && u.y === tile.y);
+    const unit = friendlyUnit || enemyUnit;
+
+    cursorRef.current = tile;
+
+    if (!unit) {
+      if (onTileClick) onTileClick(tile);
+      selectedUnitRef.current = null;
+      redraw();
+      return;
+    }
+
+    if (unit && onUnitClick) {
+      onUnitClick(unit, touch.clientX, touch.clientY);
+    }
+
+    selectedUnitRef.current = unit || null;
+    redraw();
   };
 
   const onTouchMove = e => {
@@ -119,13 +127,15 @@ export function attachBattleInput({
 
   canvas.addEventListener("mousemove", onMove);
   canvas.addEventListener("click", onClick);
-  canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+  canvas.addEventListener("touchstart", onTouchStart, { passive: true });
   canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+  canvas.addEventListener("touchend", onTouchEnd, { passive: false });
 
   return () => {
     canvas.removeEventListener("mousemove", onMove);
     canvas.removeEventListener("click", onClick);
     canvas.removeEventListener("touchstart", onTouchStart);
     canvas.removeEventListener("touchmove", onTouchMove);
+    canvas.removeEventListener("touchend", onTouchEnd);
   };
 }
