@@ -7,7 +7,7 @@ export default class CoffeeShopProject extends UnitBase {
     super({
       ...opts,
       faction: opts.faction || "friendly",
-      sprite: opts.sprite || {16 : 3},
+      sprite: opts.sprite || "CoffeeShopGameImages/UeManeq.png",
       hp: opts.hp ?? 3,
       atk: opts.atk ?? 5,
       move: opts.move ?? 7,
