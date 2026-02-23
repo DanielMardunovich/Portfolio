@@ -120,10 +120,10 @@ export default function UnitMenu({ unit, position, onSelect, onClose }) {
       ref={menuRef}
       className="unit-menu"
       style={{
-        left: computedPos.left != null ? `${computedPos.left}px` : undefined,
-        top: computedPos.top != null ? `${computedPos.top}px` : undefined,
-        bottom: computedPos.bottom != null ? `${computedPos.bottom}px` : undefined,
-        transform: computedPos.left === '50%' || isMobileLayout ? 'translateX(-50%)' : undefined
+        left: (computedPos.left != null && typeof computedPos.left === 'number') ? `${computedPos.left}px` : (typeof computedPos.left === 'string' ? computedPos.left : undefined),
+        top: (computedPos.top != null && typeof computedPos.top === 'number') ? `${computedPos.top}px` : (typeof computedPos.top === 'string' ? computedPos.top : undefined),
+        bottom: (computedPos.bottom != null && typeof computedPos.bottom === 'number') ? `${computedPos.bottom}px` : (typeof computedPos.bottom === 'string' ? computedPos.bottom : undefined),
+        transform: (computedPos.left === '50%' || isMobileLayout) ? 'translateX(-50%)' : undefined
       }}
     >
       {/* Top full-width Project info bar (only when editorShowInfo is enabled) */}
