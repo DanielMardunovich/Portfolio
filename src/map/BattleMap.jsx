@@ -634,32 +634,18 @@ export default function BattleMap() {
   useEffect(() => { enemyUnitsRef.current = enemyUnits; }, [enemyUnits]);
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
-  // Idle animation loop — keeps units wiggling and damage numbers animating
-  // even when the user isn't moving the mouse.
+  // Idle animation loop — runs continuously during gameplay so wiggle/shake/damage
+  // numbers always animate. Uses phaseRef so the closure never goes stale.
   const rafRef = useRef(null);
   useEffect(() => {
-    const needsAnimation = () => {
-      const hasIdle = (friendlyUnits || []).some(u => !u.isDead && !u.hasActed)
-                   || (enemyUnits || []).some(u => !u.isDead && !u.hasActed);
-      const hasHit   = hitAnimationsRef.current.size > 0;
-      const hasShake = shakeRef.current.size > 0;
-      const hasDmg   = damageNumbersRef.current.length > 0;
-      return hasIdle || hasHit || hasShake || hasDmg;
-    };
+    if (phase !== PHASES.MAP_IDLE) return;
 
     const loop = () => {
       redraw();
       rafRef.current = requestAnimationFrame(loop);
     };
 
-    if (needsAnimation()) {
-      if (!rafRef.current) rafRef.current = requestAnimationFrame(loop);
-    } else {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    }
+    rafRef.current = requestAnimationFrame(loop);
 
     return () => {
       if (rafRef.current) {
@@ -667,7 +653,7 @@ export default function BattleMap() {
         rafRef.current = null;
       }
     };
-  }, [friendlyUnits, enemyUnits, phase]);
+  }, [phase]);
   useEffect(() => {
     if (phase !== PHASES.MAP_IDLE) return;
     if (turn !== TURN.ENEMY) {
