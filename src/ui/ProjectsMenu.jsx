@@ -36,29 +36,31 @@ export default function ProjectsMenu({ projects = [], isOpen, onClose, onProject
         <span className="projects-menu-title">Projects</span>
       </div>
 
-      <div className="projects-menu-list">
-        {projects.map((proj, idx) => (
-          <button
-            key={proj.title + idx}
-            className="unit-menu-project-top"
-            onClick={() => onProjectClick(proj)}
-          >
-            {proj.image && (
-              <img src={proj.image} alt="icon" style={{ width: 32, height: 32, marginRight: 10, borderRadius: 4 }} />
-            )}
-            <span>{proj.title}</span>
-          </button>
-        ))}
-      </div>
+      <div className="projects-menu-body">
+        <div className="projects-menu-list">
+          {projects.map((proj, idx) => (
+            <button
+              key={proj.title + idx}
+              className="unit-menu-project-top"
+              onClick={() => onProjectClick(proj)}
+            >
+              {proj.image && (
+                <img src={proj.image} alt="icon" style={{ width: 32, height: 32, marginRight: 10, borderRadius: 4 }} />
+              )}
+              <span>{proj.title}</span>
+            </button>
+          ))}
+        </div>
 
-      <div className="projects-section-header">Contact</div>
-      <div className="projects-contact-list">
-        {contactList.map((c, i) => (
-          <a key={c.label + i} className="contact-item" href={c.href} target="_blank" rel="noreferrer">
-            <img src={c.image || "BulletDanceImages/logo.png"} alt={c.label} style={{ width:28, height:28, marginRight: 10, borderRadius:4 }} />
-            <span>{c.label}</span>
-          </a>
-        ))}
+        <div className="projects-section-header">Contact</div>
+        <div className="projects-contact-list">
+          {contactList.map((c, i) => (
+            <a key={c.label + i} className="contact-item" href={c.href} target="_blank" rel="noreferrer">
+              <img src={c.image || "BulletDanceImages/logo.png"} alt={c.label} style={{ width:28, height:28, marginRight: 10, borderRadius:4 }} />
+              <span>{c.label}</span>
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );

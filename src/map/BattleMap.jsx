@@ -287,8 +287,42 @@ export default function BattleMap() {
     const scaleX = window.innerWidth / canvas.width;
     const scaleY = window.innerHeight / canvas.height;
 
-    // Use the larger scale so it fills the screen
-    const scale = Math.max(scaleX, scaleY);
+    // Use the smaller scale so the whole map fits on screen.
+    // If scaling up, prefer an integer scale to preserve pixel-art crispness.
+    const baseContain = Math.min(scaleX, scaleY);
+    const baseCover = Math.max(scaleX, scaleY);
+
+    // On desktop prefer a 'cover' behavior so the map fills the viewport
+    // and reduces large dark margins. On small screens use 'contain' so the
+    // whole map remains visible without cropping.
+    const isDesktop = window.innerWidth > 900;
+    const chosenBase = isDesktop ? baseCover : baseContain;
+
+    // Prefer integer upscales for pixel crispness, but if there is a lot of
+    // unused horizontal space after using the integer scale, allow a
+    // fractional scale (chosenBase) to reduce side darkspace while still
+    // keeping `imageRendering: pixelated` to preserve the look as much as
+    // possible.
+    let scale;
+    if (chosenBase >= 1) {
+      const intScale = Math.floor(chosenBase);
+      const widthUsed = canvas.width * intScale;
+      const leftover = window.innerWidth - widthUsed;
+      // If more than ~160px of dark space remains and fractional scale would
+      // noticeably reduce it, use the fractional scale.
+      if (leftover > 160 && (chosenBase - intScale) >= 0.25) {
+        scale = Number(chosenBase.toFixed(3));
+      } else {
+        scale = intScale || chosenBase; // fallback to chosenBase if intScale is 0
+      }
+    } else {
+      scale = chosenBase;
+    }
+
+    // Prefer crisp nearest-neighbor rendering when possible
+    canvas.style.imageRendering = "pixelated";
+    // Prevent the browser from stealing touch gestures while interacting with the canvas
+    canvas.style.touchAction = "none";
 
     canvas.style.position = "fixed";
     canvas.style.left = "50%";
@@ -977,6 +1011,29 @@ useEffect(() => {
   useEffect(() => {
     if (infoPanelOpen) setProjectsMenuOpen(false);
   }, [infoPanelOpen]);
+
+  // Prevent the page from scrolling when the projects menu is open on small screens
+  useEffect(() => {
+    const isSmall = () => window.innerWidth <= 700;
+    const prev = document.body.style.overflow;
+    if (projectsMenuOpen && isSmall()) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    const onResize = () => {
+      if (!projectsMenuOpen) return;
+      if (isSmall()) document.body.style.overflow = "hidden";
+      else document.body.style.overflow = "";
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      document.body.style.overflow = prev;
+    };
+  }, [projectsMenuOpen]);
 
   const handleMenuSelect = (action, unit) => {
     switch(action) {

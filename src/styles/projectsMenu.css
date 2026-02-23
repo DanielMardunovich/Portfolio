@@ -60,12 +60,26 @@
 
 /* ── Project list ── */
 .projects-menu-list {
-  flex: 1;
-  overflow-y: auto;
+  /* inner list styles (kept for layout) */
   padding: 10px 8px 18px 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* Enable smooth touch scrolling and contain overscroll to the menu area */
+.projects-menu-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px 18px 8px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.projects-menu-list,
+.projects-contact-list {
+  /* ensure internal spacing still applies */
+  -webkit-overflow-scrolling: initial;
 }
 
 /* ── Project buttons — scoped so they don't affect unit menu ── */
@@ -266,4 +280,47 @@
 .projects-contact-list .contact-item:hover {
   background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 80%, black) 100%);
   color: var(--bg);
+}
+
+/* Mobile / small-screen adjustments */
+@media (max-width: 700px) {
+  .projects-menu {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .projects-menu.open {
+    transform: translateX(0);
+  }
+
+  .projects-menu-toggle {
+    /* Keep toggle visible on small screens; pin to left edge */
+    left: 0 !important;
+    bottom: 12px;
+    top: auto;
+    transform: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+  }
+
+  .projects-profile-image,
+  .projects-profile-initials {
+    width: 72px;
+    height: 72px;
+  }
+
+  .projects-menu-list .unit-menu-project-top {
+    padding: 16px;
+    gap: 16px;
+    font-size: 15px;
+  }
+
+  .projects-contact-list .contact-item {
+    padding: 14px;
+    font-size: 15px;
+  }
 }
